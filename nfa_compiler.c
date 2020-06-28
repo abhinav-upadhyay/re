@@ -63,7 +63,6 @@ create_state(nfa_machine_t *machine, int c)
         state->end_list = NULL;
     }
     cm_array_list_add(machine->state_list, state);
-    // state->state_idx = machine->state_counter++;
     state->state_idx = machine->state_list->length;
     return state;
 }
@@ -130,11 +129,9 @@ compile_infix_node(nfa_machine_t *machine, infix_expression_t *node)
         end_state_list *temp = left->end_list;
         while (temp != NULL) {
             if (temp->state->out && temp->state->out->c == END_STATE) {
-                // free(temp->state->out);
                 temp->state->out = right;
             }
             if (temp->state->out1 && temp->state->out1->c == END_STATE) {
-                // free(temp->state->out1);
                 temp->state->out1 = right;
             }
             temp = temp->next;
@@ -166,13 +163,9 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
         end_state_list *temp = left->end_list;
         while (temp != NULL) {
             if (temp->state->out && temp->state->out->c == END_STATE) {
-                // free_end_list(temp->state->out->end_list);
-                // free(temp->state->out);
                 temp->state->out = state;
             }
             if (temp->state->out1 && temp->state->out1->c == END_STATE) {
-                // free_end_list(temp->state->out1->end_list);
-                // free(temp->state->out1);
                 temp->state->out1 = state;
             }
             temp = temp->next;
@@ -186,13 +179,9 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
         end_state_list *temp = left->end_list;
         while (temp) {
             if (temp->state->out && temp->state->out->c == END_STATE) {
-                // free_end_list(temp->state->out->end_list);
-                // free(temp->state->out);
                 temp->state->out = state;
             }
             if (temp->state->out1 && temp->state->out1->c == END_STATE) {
-                // free_end_list(temp->state->out1->end_list);
-                // free(temp->state->out1);
                 temp->state->out1 = state;
             }
             temp = temp->next;
@@ -200,7 +189,6 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
         state->out = left;
         state->out1 = ACCEPTING_STATE(machine);
         free_end_list(left->end_list);
-        // left->end_list->state = state;
         left->end_list = state->end_list;
         left->end_list->state = state;
         state->end_list = NULL;
@@ -245,7 +233,6 @@ compile_regex(const char *regex_pattern)
     if (machine == NULL)
         err(EXIT_FAILURE, "malloc failed");
     machine->state_list = cm_array_list_init(128, free);
-    // print_ast(regex);
     nfa_state_t *compiled_regex = compile_expression_node(machine, (expression_node_t *) regex->root);
     parser_free(parser);
     regex_free(regex);
