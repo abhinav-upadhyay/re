@@ -24,7 +24,7 @@ Right now the compiler only supports the `?`, `*`, `+`, `|` operators and expres
 `$./nfa_executor_tests`
 
 
-#### Benchmarking
+### Benchmarking
 Based on the benchmarking expression used in Russ Cox's article. The program generates the
 expression
 <a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;a?^na^n" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;a?^na^n" title="a?^na^n" /></a>
