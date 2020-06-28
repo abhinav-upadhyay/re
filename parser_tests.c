@@ -181,6 +181,15 @@ test_simple_repitition(void)
         {
             "((ab)|(ac))?d",
             infix_node(postfix_node(infix_node(infix_node(char_node('a'), char_node('b'), CONCAT), infix_node(char_node('a'), char_node('c'), CONCAT) , OR), ZERO_OR_ONE), char_node('d'), CONCAT)
+        },
+        {
+            "a?aa",
+            infix_node(infix_node(postfix_node(char_node('a'), ZERO_OR_ONE), char_node('a'), CONCAT), char_node('a'), CONCAT)
+
+        },
+        {
+            "a?a?a",
+            infix_node(infix_node(postfix_node(char_node('a'), ZERO_OR_ONE), postfix_node(char_node('a'), ZERO_OR_ONE), CONCAT), char_node('a'), CONCAT)
         }
     };
 

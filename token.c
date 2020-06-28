@@ -49,6 +49,7 @@ token_copy(token_t *tok)
 void
 token_free(token_t *tok)
 {
-    free(tok->literal);
+    if (tok->type != END_OF_FILE)
+        free(tok->literal);
     free(tok);
 }

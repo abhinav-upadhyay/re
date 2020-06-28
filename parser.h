@@ -29,6 +29,7 @@ parser_t *parser_init(lexer_t *);
 void parser_next_token(parser_t *);
 regex_t *parse_regex(parser_t *);
 regex_t *regex_init(void);
+void print_ast(regex_t *);
 void parser_free(parser_t *);
 void regex_free(regex_t *);
 postfix_expression_t *create_postfix_exp(void);

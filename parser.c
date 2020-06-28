@@ -14,6 +14,7 @@ static expression_node_t * parse_infix_expression(parser_t *, expression_node_t 
 static expression_node_t * parse_postfix_expression(parser_t *, expression_node_t *);
 static expression_node_t * parse_char_node(parser_t *);
 static expression_node_t * parse_re_group(parser_t *);
+static void print_exp(expression_node_t *, size_t);
 
 static prefix_parse_fn prefix_fns[] = {
     parse_char_node, // char
@@ -114,7 +115,7 @@ void
 parser_next_token(parser_t *parser)
 {
 
-    if (parser->cur_tok && parser->cur_tok->type != END_OF_FILE)
+    if (parser->cur_tok) // && parser->cur_tok->type != END_OF_FILE)
         token_free(parser->cur_tok);
     // if (parser->cur_tok->type == END_OF_FILE)
         // return;
@@ -300,6 +301,8 @@ parse_regex(parser_t *parser)
 void
 parser_free(parser_t *parser)
 {
+    token_free(parser->cur_tok);
+    token_free(parser->peek_tok);
     lexer_free(parser->lexer);
     free(parser);
 }
@@ -332,11 +335,14 @@ void
 regex_free(regex_t *regex)
 {
     free_expression((expression_node_t *) regex->root);
+    free(regex);
 }
 
 void
 free_expression(expression_node_t *exp)
 {
+    token_free(exp->node.token);
+    free(exp->node.token_literal);
     switch (exp->type) {
     case CHAR_LITERAL:
         free(exp);
@@ -401,5 +407,83 @@ static char *
 to_string(node_t *node)
 {
     return expression_to_string((expression_node_t *) node);
+}
 
+static void
+do_indent(size_t indent)
+{
+    for (size_t i = 0; i < indent; i++)
+        printf(" ");
+}
+
+static void
+print_infix(infix_expression_t *exp, size_t indent)
+{
+    print_exp(exp->left, indent + 2);
+    do_indent(indent);
+    switch (exp->op) {
+    case CONCAT:
+        printf("CAT\n");
+        break;
+    case OR:
+        printf("|\n");
+        break;
+    default:
+        break;    
+    }
+    print_exp(exp->right, indent + 2);
+}
+
+static void
+print_postfix(postfix_expression_t *exp, size_t indent)
+{
+    print_exp(exp->left, indent + 2);
+    do_indent(indent);
+    switch (exp->op) {
+    case ZERO_OR_MORE:
+        printf("*\n");
+        break;
+    case ZERO_OR_ONE:
+        printf("?\n");
+        break;
+    case ONE_OR_MORE:
+        printf("+\n");
+        break;
+    default:
+        break;    
+    }
+}
+
+static void
+print_char_literal(char_literal_t *exp, size_t indent)
+{
+    do_indent(indent);
+    printf("%c\n", exp->value);
+}
+
+static void
+print_exp(expression_node_t *exp, size_t indent)
+{
+    switch (exp->type) {
+    case INFIX_EXPRESSION:
+        print_infix((infix_expression_t *) exp, indent + 2);
+        break;
+    case POSTFIX_EXPRESSION:
+        print_postfix((postfix_expression_t *) exp, indent + 2);
+        break;
+    case CHAR_LITERAL:
+        print_char_literal((char_literal_t *) exp, indent + 2);
+        break;
+    default:
+        break;    
+    }
+
+}
+
+void
+print_ast(regex_t *regex)
+{
+    expression_node_t *exp = (expression_node_t *) regex->root;
+    size_t indent = 0;
+    print_exp(exp, indent);
 }
