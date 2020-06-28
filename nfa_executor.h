@@ -3,5 +3,5 @@
 
 #include "nfa_compiler.h"
 
-int nfa_execute(nfa_state_t *, const char *);
+int nfa_execute(nfa_machine_t *, const char *);
 #endif
