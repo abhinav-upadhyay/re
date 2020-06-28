@@ -81,32 +81,6 @@ free_end_list(end_state_list *list)
     }
 }
 
-static void
-free_state(nfa_state_t *state, char *freed_idx, size_t out_idx, size_t out1_idx)
-{
-    if (state == NULL)
-        return;
-
-    size_t state_idx = state->state_idx;
-    freed_idx[state_idx] = 1;
-    if (out_idx && freed_idx[out_idx] == 0) {
-        freed_idx[out_idx] = 1;
-        size_t next_out_idx = out_idx && freed_idx[out_idx] == 0 && state->out->out? state->out->out->state_idx: 0;
-        size_t next_out1_idx = out_idx && freed_idx[out_idx] == 0 && state->out->out1? state->out->out1->state_idx: 0;
-        free_state(state->out, freed_idx, next_out_idx, next_out1_idx);
-    }
-
-    if (out1_idx && freed_idx[out1_idx] == 0) {
-        freed_idx[out1_idx] = 1;
-        size_t next_out_idx = out1_idx && freed_idx[out1_idx] == 0 && state->out1->out? state->out1->out->state_idx: 0;
-        size_t next_out1_idx = out1_idx && freed_idx[out1_idx] == 0 && state->out1->out1? state->out1->out1->state_idx: 0;
-        free_state(state->out1, freed_idx, next_out_idx, next_out1_idx);
-    }
-    free_end_list(state->end_list);
-    state->end_list = NULL;
-    free(state);
-}
-
 static nfa_state_t *
 compile_infix_node(nfa_machine_t *machine, infix_expression_t *node)
 {
