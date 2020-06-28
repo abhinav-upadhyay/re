@@ -46,4 +46,4 @@ re_utils.o: re_utils.c
 	$(CC) $(CFLAGS) -c re_utils.c
 
 clean:
-	rm -rf *.o lexer_tests core
+	rm -rf *.o lexer_tests core benchmark nfa_executor_tests parser_tests
