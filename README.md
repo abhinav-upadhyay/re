@@ -34,6 +34,8 @@ second value being time taken to compile and execute the regular expression agai
 `$./benchmark`
 
 
-
+#### Benchmark results
+Following is a comparison of performance of this implementation vs the Java regular expression library
+![benchmark](https://github.com/abhinav-upadhyay/re/raw/master/benchmark.png)
 
 
