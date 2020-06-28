@@ -31,22 +31,21 @@ execute(size_t n)
     pattern[pattern_size] = 0;
     memset(string, 'a', n);
     string[n] = 0;
-    // printf("pattern: %s, string: %s\n", pattern, string);
     start = clock();
     nfa_machine_t * machine = compile_regex(pattern);
-    int match = nfa_execute(machine->start, string);
-    end = clock();
-    time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[%d] Time for n=%zu: %f s\n", match, n, time_used);
+    int match = nfa_execute(machine, string);
     free(pattern);
     free(string);
-    // free_nfa(machine);
+    free_nfa(machine);
+    end = clock();
+    time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("%zu,%f\n", n, time_used);
 }
 
 int
 main(int argc, char **argv)
 {
-    for (size_t i = 1; i < 30; i++)
+    for (size_t i = 1; i < 100; i++)
         execute(i);
     return 0;
 
