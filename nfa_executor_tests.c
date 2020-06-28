@@ -80,7 +80,7 @@ test_matches(void)
         test_input t = tests[i];
         printf("Testing regex %s with string %s---", t.regex, t.s);
         nfa_machine_t *machine = compile_regex(t.regex);
-        int match = nfa_execute(machine->start, t.s);
+        int match = nfa_execute(machine, t.s);
         test(match == t.expected, ANSI_COLOR_RED "failed for input %s: %s\n" ANSI_COLOR_RESET, t.regex, t.s);
         printf(ANSI_COLOR_GREEN "-Passed!" ANSI_COLOR_RESET "\n");
         free_nfa(machine);
