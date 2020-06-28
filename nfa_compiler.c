@@ -257,14 +257,6 @@ compile_regex(const char *regex_pattern)
 void
 free_nfa(nfa_machine_t *machine)
 {
-    // nfa_state_t *start = machine->start;
-    // nfa_state_t *out = start->out;
-    // nfa_state_t *out1 = start->out1;
-    // char *freed_idx = malloc(machine->state_list->array_size);
-    // if (freed_idx == NULL)
-        // err(EXIT_FAILURE, "malloc failed");
-    // memset(freed_idx, 0, machine->state_counter);
-    // free_end_list(start->end_list);
     for (size_t i = 0; i < machine->state_list->length; i++) {
         nfa_state_t *s = machine->state_list->array[i];
         if (s->end_list)
@@ -273,9 +265,5 @@ free_nfa(nfa_machine_t *machine)
     }
     free(machine->state_list->array);
     free(machine->state_list);
-    // size_t out_idx = start->out? start->out->state_idx: 0;
-    // size_t out1_idx = start->out1? start->out1->state_idx: 0;
-    // free_state(start, freed_idx, out_idx, out1_idx);
-    // free(freed_idx);
     free(machine);
 }
