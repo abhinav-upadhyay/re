@@ -43,24 +43,6 @@ static size_t state_counter = 0;
 // nfa_state_t ACCEPTING_STATE = {END_STATE, NULL, NULL};
 #define ACCEPTING_STATE(machine) create_state(machine, END_STATE)
 
-int
-is_null_state(nfa_state_t *s)
-{
-    return s->c[NULL_STATE] == 1;
-}
-
-int
-is_end_state(nfa_state_t *s)
-{
-    return s->c[END_STATE] == 1;
-}
-
-int
-is_matching_state(nfa_state_t *s, u_int8_t c)
-{
-    return s->c[c] == 1;
-}
-
 static nfa_state_t *
 create_state(nfa_machine_t *machine, u_int8_t c)
 {

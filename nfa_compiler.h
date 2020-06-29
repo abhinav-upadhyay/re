@@ -63,9 +63,10 @@ typedef struct nfa_machine_t {
 #define END_STATE 0
 #define NULL_STATE 255
 
-int is_end_state(nfa_state_t *);
-int is_matching_state(nfa_state_t *, u_int8_t);
-int is_null_state(nfa_state_t *);
+#define is_end_state(s) (s->c[END_STATE] == 1)
+#define is_matching_state(s, c) (s->c[c] == 1)
+#define is_null_state(s) (s->c[NULL_STATE] == 1)
+
 
 // extern nfa_state_t ACCEPTING_STATE;
 
