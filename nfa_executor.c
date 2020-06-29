@@ -40,11 +40,12 @@
 static void
 add_state_to_list(nfa_state_t *s, nfa_state_t **nlist, size_t *nlist_index, char *idx_list)
 {
-    if (idx_list[s->state_idx] == 1)
+    if (idx_list[s->state_idx])
         return;
     idx_list[s->state_idx] = 1;
-    nlist[*nlist_index] = s;
-    *nlist_index = *nlist_index + 1;
+    size_t n = *nlist_index;
+    nlist[n++] = s;
+    *nlist_index = n;
 }
 
 
