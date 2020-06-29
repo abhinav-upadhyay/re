@@ -42,12 +42,12 @@ execute(size_t n)
     char *pattern, *string;
     clock_t start, end;
     double time_used;
-    size_t pattern_size = 2 * n + n +1;
+    size_t pattern_size = 2 * n + n + 1;
     size_t string_size = n + 1;
-    pattern = malloc(pattern_size + 1);
+    pattern = malloc(pattern_size);
     if (pattern == NULL)
         err(EXIT_FAILURE, "malloc failed");
-    string = malloc(string_size + 1);
+    string = malloc(string_size);
     if (string == NULL)
         err(EXIT_FAILURE, "malloc failed");
     memset(pattern, 'a', pattern_size - 1);
@@ -57,7 +57,7 @@ execute(size_t n)
         else
             pattern[i] = '?';
     }
-    pattern[pattern_size] = 0;
+    pattern[pattern_size - 1] = 0;
     memset(string, 'a', n);
     string[n] = 0;
     start = clock();
