@@ -36,53 +36,55 @@
 #include "nfa_executor.h"
 
 #define LIST_SIZE 128
+static nfa_state_t ** clist;
+static nfa_state_t ** nlist;
+static char * idx_list;
+static size_t CLIST_INDEX;
+static size_t NLIST_INDEX;
+
 
 static void
-add_state_to_list(nfa_state_t *s, nfa_state_t **nlist, size_t *nlist_index, char *idx_list)
+add_state_to_list(nfa_state_t *s)
 {
-    if (idx_list[s->state_idx])
-        return;
-    idx_list[s->state_idx] = 1;
-    size_t n = *nlist_index;
-    nlist[n++] = s;
-    *nlist_index = n;
+    if (idx_list[s->state_idx] == 0) {
+        idx_list[s->state_idx] = 1;
+        nlist[NLIST_INDEX++] = s;
+    }
 }
 
 
 static void
-find_match_state(nfa_state_t *s, u_int8_t c, nfa_state_t **nlist, size_t *nlist_index, char *idx_list)
+find_match_state(nfa_state_t *s, u_int8_t c)
 {
     if (s == NULL) 
         return;
     if (is_null_state(s)) {
-        find_match_state(s->out, c, nlist, nlist_index, idx_list);
-        find_match_state(s->out1, c, nlist, nlist_index, idx_list);
+        find_match_state(s->out, c);
+        find_match_state(s->out1, c);
         return;
     }
 
     if (is_end_state(s)) {
-        add_state_to_list(s, nlist, nlist_index, idx_list);
+        add_state_to_list(s);
     }
 
     if (!is_matching_state(s, c))
         return;
-    add_state_to_list(s, nlist, nlist_index, idx_list);
+    add_state_to_list(s);
     if (s->out && is_null_state(s->out)) {
-        nfa_state_t *temp = s->out;
-        if ((is_matching_state(temp->out, c) || is_end_state(temp->out))) {
-            add_state_to_list(temp->out, nlist, nlist_index, idx_list);
+        if ((is_matching_state(s->out->out, c) || is_end_state(s->out->out))) {
+            add_state_to_list(s->out->out);
         }
-        if (temp->out1 && (is_matching_state(temp->out1, c) || is_end_state(temp->out1))) {
-            add_state_to_list(temp->out1, nlist, nlist_index, idx_list);
+        if (s->out->out1 && (is_matching_state(s->out->out1, c) || is_end_state(s->out->out1))) {
+            add_state_to_list(s->out->out1);
         }
     }
     if (s->out1 && is_null_state(s->out1)) {
-        nfa_state_t *temp = s->out1;
-        if (is_matching_state(temp->out, c) || is_end_state(temp->out)) {
-            add_state_to_list(temp->out, nlist, nlist_index, idx_list);
+        if (is_matching_state(s->out1->out, c) || is_end_state(s->out1->out)) {
+            add_state_to_list(s->out1->out);
         }
-        if (temp->out1 && (is_matching_state(temp->out1, c) || is_end_state(temp->out1))) {
-            add_state_to_list(temp->out1, nlist, nlist_index, idx_list);
+        if (s->out1->out1 && (is_matching_state(s->out1->out1, c) || is_end_state(s->out1->out1))) {
+            add_state_to_list(s->out1->out1);
         }
     }
 }
@@ -98,7 +100,6 @@ check_end_state(nfa_state_t *s)
         return 1;
     if (s->out1 && is_end_state(s->out1))
         return 1;
-    nfa_state_t *orig = s;
 
     if (s->out && is_null_state(s->out)) {
         if (is_end_state(s->out->out1) || is_end_state(s->out->out))
@@ -110,15 +111,15 @@ check_end_state(nfa_state_t *s)
 int
 nfa_execute(nfa_machine_t *machine, const char *string)
 {
-    nfa_state_t ** clist = calloc(LIST_SIZE, sizeof(nfa_state_t *));
-    nfa_state_t ** nlist = calloc(LIST_SIZE, sizeof(nfa_state_t *));
+    clist = calloc(LIST_SIZE, sizeof(nfa_state_t *));
+    nlist = calloc(LIST_SIZE, sizeof(nfa_state_t *));
     size_t idx_len = machine->state_list->length + 1;
-    char *idx_list = malloc(idx_len);
+    idx_list = malloc(idx_len);
     memset(idx_list, 0, idx_len);
-    size_t CLIST_INDEX = 0;
-    size_t NLIST_INDEX = 0;
+    CLIST_INDEX = 0;
+    NLIST_INDEX = 0;
     int retval = 0;
-    find_match_state(machine->start, *string++, nlist, &NLIST_INDEX, idx_list);
+    find_match_state(machine->start, *string++);
     memset(idx_list, 0, idx_len);
     CLIST_INDEX = NLIST_INDEX;
     NLIST_INDEX = 0;
@@ -130,8 +131,8 @@ nfa_execute(nfa_machine_t *machine, const char *string)
         u_int8_t c = (u_int8_t) *string++;
         for (size_t i = 0; i < CLIST_INDEX; i++) {
             nfa_state_t *s = clist[i];
-            find_match_state(is_end_state(s)? s: s->out, c, nlist, &NLIST_INDEX, idx_list);
-            find_match_state(is_end_state(s)? s: s->out1, c, nlist, &NLIST_INDEX, idx_list);
+            find_match_state(is_end_state(s)? s: s->out, c);
+            find_match_state(is_end_state(s)? s: s->out1, c);
         }
         memset(idx_list, 0, idx_len);
         CLIST_INDEX = NLIST_INDEX;
