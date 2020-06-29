@@ -102,7 +102,10 @@ test_matches(void)
         {"(a|b|c|d|e)?(1|2|3|4)+(a|b)", "2a", 1},
         {"(a|b|c|d|e)?(1|2|3|4)+(a|b)", "1b", 1},
         {"(a|b|c|d|e)?(1|2|3|4)+(a|b)", "2b", 1},
-        {"(a|b|c|d|e)?(1|2|3|4)+(a|b)", "1", 0}
+        {"(a|b|c|d|e)?(1|2|3|4)+(a|b)", "1", 0},
+        {"a+b+c+de", "aabde", 0},
+        {"a+b+c+de", "123aabcde", 0},
+        {"a+b+c+de", "aabcde", 1}
     };
 
     for (size_t i = 0; i < sizeof(tests)/sizeof(tests[0]); i++) {
