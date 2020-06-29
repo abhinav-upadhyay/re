@@ -62,7 +62,7 @@ execute(size_t n)
     string[n] = 0;
     start = clock();
     nfa_machine_t * machine = compile_regex(pattern);
-    int match = nfa_execute(machine, string);
+    nfa_execute(machine, string);
     free(pattern);
     free(string);
     free_nfa(machine);
