@@ -38,9 +38,8 @@
 #include "re_utils.h"
 
 static nfa_state_t * compile_expression_node(nfa_machine_t *, expression_node_t *);
-static size_t state_counter = 0;
 
-const nfa_state_t ACCEPTING_STATE = {NULL, NULL, NULL, 0, 0};
+const nfa_state_t ACCEPTING_STATE = {NULL, NULL, NULL, 0, {0}};
 
 static nfa_state_t *
 create_state(nfa_machine_t *machine, u_int8_t c)
@@ -201,7 +200,7 @@ compile_regex(const char *regex_pattern)
     machine = malloc(sizeof(*machine));
     if (machine == NULL)
         err(EXIT_FAILURE, "malloc failed");
-    machine->state_list = cm_array_list_init(128, free);
+    machine->state_list = cm_array_list_init(64, NULL);
     nfa_state_t *compiled_regex = compile_expression_node(machine, (expression_node_t *) regex->root);
     parser_free(parser);
     regex_free(regex);
