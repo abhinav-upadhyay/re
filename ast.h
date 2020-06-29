@@ -70,7 +70,7 @@ static const char *operator_strings[] = {
     "OR",
     "CONCAT",
     "+",
-    "?"
+    "?",
     "*"
 };
 
