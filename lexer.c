@@ -69,37 +69,37 @@ next_token(lexer_t *l)
     switch (l->ch) {
     case '.':
         t->type = DOT;
-        t->literal = strdup(".");
+        t->literal = ".";
         read_char(l);
         break;
     case '+':
         t->type = PLUS;
-        t->literal = strdup("+");
+        t->literal = "+";
         read_char(l);
         break;
     case '?':
         t->type = QUESTION;
-        t->literal = strdup("?");
+        t->literal = "?";
         read_char(l);
         break;
     case '(':
         t->type = LPAREN;
-        t->literal = strdup("(");
+        t->literal = "(";
         read_char(l);
         break;
     case ')':
         t->type = RPAREN;
-        t->literal = strdup(")");
+        t->literal = ")";
         read_char(l);
         break;
     case '*':
         t->type = STAR;
-        t->literal = strdup("*");
+        t->literal = "*";
         read_char(l);
         break;
     case '|':
         t->type = PIPE;
-        t->literal = strdup("|");
+        t->literal = "|";
         read_char(l);
         break;
     case 0:
