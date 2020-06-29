@@ -68,17 +68,20 @@ token_copy(token_t *tok)
     if (new_token == NULL)
         err(EXIT_FAILURE, "malloc failed");
     new_token->type = tok->type;
-    char *literal = strdup(tok->literal);
-    if (literal == NULL) 
-        err(EXIT_FAILURE, "malloc failed");
-    new_token->literal = literal;
+    if (tok->type == CHAR) {
+        char *literal = strdup(tok->literal);
+        if (literal == NULL)
+            err(EXIT_FAILURE, "malloc failed");
+        new_token->literal = literal;
+    } else
+        new_token->literal = tok->literal;
     return new_token;
 }
 
 void
 token_free(token_t *tok)
 {
-    if (tok->type != END_OF_FILE)
+    if (tok->type == CHAR)
         free(tok->literal);
     free(tok);
 }
