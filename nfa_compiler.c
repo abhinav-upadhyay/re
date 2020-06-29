@@ -165,26 +165,21 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
     return NULL; //should not reach here
 }
 
-static nfa_state_t *
-compile_char_node(nfa_machine_t *machine, char_literal_t *node){
-    nfa_state_t *state = create_state(machine, (u_int8_t) node->value);
-    state->out = (nfa_state_t *) &ACCEPTING_STATE;
-    state->out1 = NULL;
-    state->end_list->state = state;
-    return state;
-}
-
 
 static nfa_state_t *
 compile_expression_node(nfa_machine_t *machine, expression_node_t *node)
 {
+    nfa_state_t *state;
     switch (node->type) {
     case INFIX_EXPRESSION:
         return compile_infix_node(machine, (infix_expression_t *) node);
     case POSTFIX_EXPRESSION:
         return compile_postfix_node(machine, (postfix_expression_t *) node);
     case CHAR_LITERAL:
-        return compile_char_node(machine, (char_literal_t *) node);
+        state = create_state(machine, ((char_literal_t *) node)->value);
+        state->out = (nfa_state_t *) &ACCEPTING_STATE;
+        state->end_list->state = state;
+        return state;
     default:
         errx(EXIT_FAILURE, "Unsupported node type");
     }
