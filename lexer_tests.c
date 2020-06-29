@@ -43,45 +43,53 @@ int
 main(int argc, char **argv)
 {
     test_case tests [] = {
-        "(ab)*(c|d)",
         {
-            {LPAREN, "("},
-            {CHAR, "a"},
-            {CHAR, "b"},
-            {RPAREN, ")"},
-            {STAR, "*"},
-            {LPAREN, "("},
-            {CHAR, "c"},
-            {PIPE, "|"},
-            {CHAR, "d"},
-            {RPAREN, ")"},
-            {END_OF_FILE, ""}
+            "(ab)*(c|d)",
+            {
+                {LPAREN, "("},
+                {CHAR, "a"},
+                {CHAR, "b"},
+                {RPAREN, ")"},
+                {STAR, "*"},
+                {LPAREN, "("},
+                {CHAR, "c"},
+                {PIPE, "|"},
+                {CHAR, "d"},
+                {RPAREN, ")"},
+                {END_OF_FILE, ""}
+            }
         },
-        "a|b",
         {
-            {CHAR, "a"},
-            {PIPE, "|"},
-            {CHAR, "b"},
-            {END_OF_FILE, ""}
+            "a|b",
+            {
+                {CHAR, "a"},
+                {PIPE, "|"},
+                {CHAR, "b"},
+                {END_OF_FILE, ""}
+            }
         },
-        "(ab|c)*d",
         {
-            {LPAREN, "("},
-            {CHAR, "a"},
-            {CHAR, "b"},
-            {PIPE, "|"},
-            {CHAR, "c"},
-            {RPAREN, ")"},
-            {STAR, "*"},
-            {CHAR, "d"},
-            {END_OF_FILE, ""}
+            "(ab|c)*d",
+            {
+                {LPAREN, "("},
+                {CHAR, "a"},
+                {CHAR, "b"},
+                {PIPE, "|"},
+                {CHAR, "c"},
+                {RPAREN, ")"},
+                {STAR, "*"},
+                {CHAR, "d"},
+                {END_OF_FILE, ""}
+            }
         },
-        "ab",
         {
-            {CHAR, "a"},
-            {CHAR, "b"},
-            {END_OF_FILE, ""}
-        },
+            "ab",
+            {
+                {CHAR, "a"},
+                {CHAR, "b"},
+                {END_OF_FILE, ""}
+            }
+        }
     };
 
     size_t ntests = sizeof(tests) / sizeof(tests[0]);
@@ -98,6 +106,7 @@ main(int argc, char **argv)
                 test(strcmp(test_case.expected_tokens[i].literal, tok->literal) == 0,
                     "Expected token literal %s, found %s\n",
                     test_case.expected_tokens[i].literal, tok->literal);
+                token_free(tok);
             }
         }
         lexer_free(l);
