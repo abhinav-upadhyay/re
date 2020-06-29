@@ -40,8 +40,7 @@
 static nfa_state_t * compile_expression_node(nfa_machine_t *, expression_node_t *);
 static size_t state_counter = 0;
 
-// nfa_state_t ACCEPTING_STATE = {END_STATE, NULL, NULL};
-#define ACCEPTING_STATE(machine) create_state(machine, END_STATE)
+const nfa_state_t ACCEPTING_STATE = {NULL, NULL, NULL, 0, 0};
 
 static nfa_state_t *
 create_state(nfa_machine_t *machine, u_int8_t c)
@@ -53,15 +52,11 @@ create_state(nfa_machine_t *machine, u_int8_t c)
     state->c[c] = 1;
     state->out1 = NULL;
     state->out = NULL;
-    if (c != END_STATE) {
-        state->end_list = malloc(sizeof(end_state_list));
-        if (state->end_list == NULL)
-            err(EXIT_FAILURE, "malloc failed");
-        state->end_list->state = NULL;
-        state->end_list->next = NULL;
-    } else {
-        state->end_list = NULL;
-    }
+    state->end_list = malloc(sizeof(end_state_list));
+    if (state->end_list == NULL)
+        err(EXIT_FAILURE, "malloc failed");
+    state->end_list->state = NULL;
+    state->end_list->next = NULL;
     cm_array_list_add(machine->state_list, state);
     state->state_idx = machine->state_list->length;
     return state;
@@ -127,7 +122,7 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
     nfa_state_t *left = compile_expression_node(machine, node->left);
     if (node->op == ZERO_OR_ONE) {
         state->out = left;
-        state->out1 = ACCEPTING_STATE(machine);
+        state->out1 = (nfa_state_t *) &ACCEPTING_STATE;
         state->end_list->state = state;
         state->end_list->next = left->end_list;
         left->end_list = NULL; //TODO? check
@@ -147,7 +142,7 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
         free_end_list(left->end_list);
         left->end_list = NULL;
         state->end_list->state = state;
-        state->out1 = ACCEPTING_STATE(machine);
+        state->out1 = (nfa_state_t *) &ACCEPTING_STATE;
         return state;
     } else if (node->op == ONE_OR_MORE) {
         end_state_list *temp = left->end_list;
@@ -161,7 +156,7 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
             temp = temp->next;
         }
         state->out = left;
-        state->out1 = ACCEPTING_STATE(machine);
+        state->out1 = (nfa_state_t *) &ACCEPTING_STATE;
         free_end_list(left->end_list);
         left->end_list = state->end_list;
         left->end_list->state = state;
@@ -174,7 +169,7 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
 static nfa_state_t *
 compile_char_node(nfa_machine_t *machine, char_literal_t *node){
     nfa_state_t *state = create_state(machine, (u_int8_t) node->value);
-    state->out = ACCEPTING_STATE(machine);
+    state->out = (nfa_state_t *) &ACCEPTING_STATE;
     state->out1 = NULL;
     state->end_list->state = state;
     return state;

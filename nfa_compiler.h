@@ -63,12 +63,13 @@ typedef struct nfa_machine_t {
 #define END_STATE 0
 #define NULL_STATE 255
 
-#define is_end_state(s) (s->c[END_STATE] == 1)
-#define is_matching_state(s, c) (s->c[c] == 1)
-#define is_null_state(s) (s->c[NULL_STATE] == 1)
+extern const nfa_state_t ACCEPTING_STATE;
+
+#define is_end_state(s) (s == &ACCEPTING_STATE)
+#define is_matching_state(s, c) (s->c[c])
+#define is_null_state(s) (s->c[NULL_STATE])
 
 
-// extern nfa_state_t ACCEPTING_STATE;
 
 void free_nfa(nfa_machine_t *);
 nfa_machine_t *compile_regex(const char *);
