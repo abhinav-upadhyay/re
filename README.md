@@ -1,6 +1,6 @@
 # re
 This is a regular expression compiler implemented in C11 based on [Ken Thompson's paper on string search techniques](https://dl.acm.org/doi/pdf/10.1145/363347.363387).
-The implementation is heavily inspired by [Russ Cox's article](https://swtch.com/~rsc/regexp/regexp1.html) -
+The project is heavily inspired by [Russ Cox's article](https://swtch.com/~rsc/regexp/regexp1.html) -
 although the implementation is a naive attempt to implement
 it in my own way to better understand the algorithm.
 One key difference is that instead of using the conversion of the regular
