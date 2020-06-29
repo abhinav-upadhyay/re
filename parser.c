@@ -175,9 +175,7 @@ get_op(token_type toktype)
 static expression_node_t *
 parse_expression(parser_t *parser, operator_precedence_t precedence, token_type terminator_tok)
 {
-    expression_node_t *infix_exp;
     expression_node_t *left;
-    token_type prev_tok_type = parser->cur_tok->type;
     prefix_parse_fn prefix_fn = prefix_fns[parser->cur_tok->type];
 
     /* Expect the first token to be a char literal */
@@ -233,9 +231,8 @@ parse_postfix_expression(parser_t *parser, expression_node_t *left)
 {
     postfix_expression_t *postfix_exp = create_postfix_exp();
     postfix_exp->expression.node.token = token_copy(parser->cur_tok);
-    postfix_exp->expression.node.token_literal = strdup(parser->cur_tok->literal);
+    // postfix_exp->expression.node.token_literal = strdup(parser->cur_tok->literal);
     postfix_exp->left = left;
-    operator_precedence_t precdence = get_precedence(parser->cur_tok->type);
     postfix_exp->op = get_op(parser->cur_tok->type);
     return (expression_node_t *) postfix_exp;
 }
@@ -259,7 +256,7 @@ parse_infix_expression(parser_t *parser, expression_node_t *left)
     operator_precedence_t precedence;
     infix_expression_t *infix_exp = create_infix_exp();
     infix_exp->expression.node.token = token_copy(parser->cur_tok);
-    infix_exp->expression.node.token_literal = strdup(parser->cur_tok->literal);
+    // infix_exp->expression.node.token_literal = strdup(parser->cur_tok->literal);
     infix_exp->left = left;
     //?? should we call parse_expression here? It should somehow not parse too much, how to stop?
     // we can go case by case - if next token is char, just parse it. If next token is
@@ -312,7 +309,7 @@ parse_char_node(parser_t *parser)
 {
     char_literal_t *char_node = create_char_literal();
     char_node->expression.node.token = token_copy(parser->cur_tok);
-    char_node->expression.node.token_literal = strdup(parser->cur_tok->literal);
+    // char_node->expression.node.token_literal = strdup(parser->cur_tok->literal);
     char_node->value = parser->cur_tok->literal[0];
     return (expression_node_t *) char_node;
 }
@@ -354,12 +351,6 @@ free_postfix_expression(postfix_expression_t *exp)
 }
 
 
-static void
-free_node(node_t *node)
-{
-    free_expression((expression_node_t *) node);
-}
-
 void
 regex_free(regex_t *regex)
 {
@@ -371,7 +362,7 @@ void
 free_expression(expression_node_t *exp)
 {
     token_free(exp->node.token);
-    free(exp->node.token_literal);
+    // free(exp->node.token_literal);
     switch (exp->type) {
     case CHAR_LITERAL:
         free(exp);

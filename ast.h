@@ -79,7 +79,6 @@ static const char *operator_strings[] = {
 
 typedef struct node_t {
     node_type_t type;
-    char *token_literal;
     char * (*string) (struct node_t *);
     token_t *token;
 } node_t;
