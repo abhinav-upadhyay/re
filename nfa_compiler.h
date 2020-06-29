@@ -32,6 +32,7 @@
 
 #include "re_utils.h"
 
+
 typedef enum state_type_t {
     STATE_CHAR,
     STATE_CONCAT,
@@ -46,7 +47,7 @@ typedef struct nfa_state_t {
     struct nfa_state_t *out1;
     struct end_state_list *end_list;
     size_t state_idx;
-    int c;
+    u_int8_t c[256];
 } nfa_state_t;
 
 typedef struct end_state_list {
@@ -59,9 +60,12 @@ typedef struct nfa_machine_t {
     cm_array_list *state_list;
 } nfa_machine_t;
 
-#define START_STATE -1
 #define END_STATE 0
-#define NULL_STATE 256
+#define NULL_STATE 255
+
+int is_end_state(nfa_state_t *);
+int is_matching_state(nfa_state_t *, u_int8_t);
+int is_null_state(nfa_state_t *);
 
 // extern nfa_state_t ACCEPTING_STATE;
 

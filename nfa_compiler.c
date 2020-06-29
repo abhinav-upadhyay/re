@@ -43,14 +43,32 @@ static size_t state_counter = 0;
 // nfa_state_t ACCEPTING_STATE = {END_STATE, NULL, NULL};
 #define ACCEPTING_STATE(machine) create_state(machine, END_STATE)
 
+int
+is_null_state(nfa_state_t *s)
+{
+    return s->c[NULL_STATE] == 1;
+}
+
+int
+is_end_state(nfa_state_t *s)
+{
+    return s->c[END_STATE] == 1;
+}
+
+int
+is_matching_state(nfa_state_t *s, u_int8_t c)
+{
+    return s->c[c] == 1;
+}
+
 static nfa_state_t *
-create_state(nfa_machine_t *machine, int c)
+create_state(nfa_machine_t *machine, u_int8_t c)
 {
     nfa_state_t *state;
-    state = malloc(sizeof(*state));
+    state = calloc(1, sizeof(*state));
     if (state == NULL)
         err(EXIT_FAILURE, "malloc failed");
-    state->c = c;
+    state->c[c] = 1;
     state->out1 = NULL;
     state->out = NULL;
     if (c != END_STATE) {
@@ -102,10 +120,10 @@ compile_infix_node(nfa_machine_t *machine, infix_expression_t *node)
     } else if (node->op == CONCAT) {
         end_state_list *temp = left->end_list;
         while (temp != NULL) {
-            if (temp->state->out && temp->state->out->c == END_STATE) {
+            if (temp->state->out && is_end_state(temp->state->out)) {
                 temp->state->out = right;
             }
-            if (temp->state->out1 && temp->state->out1->c == END_STATE) {
+            if (temp->state->out1 && is_end_state(temp->state->out1)) {
                 temp->state->out1 = right;
             }
             temp = temp->next;
@@ -136,10 +154,10 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
         state->out = left;
         end_state_list *temp = left->end_list;
         while (temp != NULL) {
-            if (temp->state->out && temp->state->out->c == END_STATE) {
+            if (temp->state->out && is_end_state(temp->state->out)) {
                 temp->state->out = state;
             }
-            if (temp->state->out1 && temp->state->out1->c == END_STATE) {
+            if (temp->state->out1 && is_end_state(temp->state->out1)) {
                 temp->state->out1 = state;
             }
             temp = temp->next;
@@ -152,10 +170,10 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
     } else if (node->op == ONE_OR_MORE) {
         end_state_list *temp = left->end_list;
         while (temp) {
-            if (temp->state->out && temp->state->out->c == END_STATE) {
+            if (temp->state->out && is_end_state(temp->state->out)) {
                 temp->state->out = state;
             }
-            if (temp->state->out1 && temp->state->out1->c == END_STATE) {
+            if (temp->state->out1 && is_end_state(temp->state->out1)) {
                 temp->state->out1 = state;
             }
             temp = temp->next;
@@ -173,7 +191,7 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
 
 static nfa_state_t *
 compile_char_node(nfa_machine_t *machine, char_literal_t *node){
-    nfa_state_t *state = create_state(machine, node->value);
+    nfa_state_t *state = create_state(machine, (u_int8_t) node->value);
     state->out = ACCEPTING_STATE(machine);
     state->out1 = NULL;
     state->end_list->state = state;
