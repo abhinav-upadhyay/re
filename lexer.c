@@ -67,11 +67,6 @@ next_token(lexer_t *l)
     if (t == NULL)
         err(EXIT_FAILURE, "malloc failed");
     switch (l->ch) {
-    case '.':
-        t->type = DOT;
-        t->literal = ".";
-        read_char(l);
-        break;
     case '+':
         t->type = PLUS;
         t->literal = "+";

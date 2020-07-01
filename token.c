@@ -39,8 +39,6 @@ get_token_type(const char *tok_literal)
         return END_OF_FILE;
 
     switch (tok_literal[0]) {
-    case '.':
-        return DOT;
     case '+':
         return PLUS;
     case '?':
@@ -81,6 +79,8 @@ token_copy(token_t *tok)
 void
 token_free(token_t *tok)
 {
+    if (tok == NULL)
+        return;
     if (tok->type == CHAR)
         free(tok->literal);
     free(tok);

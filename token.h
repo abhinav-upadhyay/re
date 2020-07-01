@@ -32,7 +32,6 @@
 
 typedef enum token_type {
     CHAR,
-    DOT,
     PLUS,
     QUESTION,
     PIPE,
@@ -46,7 +45,6 @@ typedef enum token_type {
 
 static const char *token_names[] = {
     "CHAR",
-    "DOT",
     "PLUS",
     "QUESTION",
     "PIPE",
