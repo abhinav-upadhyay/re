@@ -109,6 +109,10 @@ test_matches(void)
         {".+a.b", "1a2b", 1},
         {".+a.b", "ab", 0},
         {".+a.b", "aaab", 1},
+        {".*a.*", "a", 1},
+        {".*a.*", "ogdogjdjgerjjraaaabdddaa", 1},
+        {".*(0|1|2|3|4|5|6|7|8|9)+(a|b|c|d|e|f)+.*", "1122334bb", 1},
+        {".*(0|1|2|3|4|5|6|7|8|9)+(a|b|c|d|e|f)+.*", "1122334", 0}
     };
 
     for (size_t i = 0; i < sizeof(tests)/sizeof(tests[0]); i++) {
