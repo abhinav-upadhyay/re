@@ -194,6 +194,8 @@ compile_regex(const char *regex_pattern)
     lexer_t *lexer = lexer_init(regex_pattern);
     parser_t *parser = parser_init(lexer);
     regex_t *regex = parse_regex(parser);
+    if (parser->error)
+        errx(EXIT_FAILURE, "%s\n", parser->error); //TODO: should gracefully return an error rather than exiting
     nfa_machine_t *machine;
     machine = malloc(sizeof(*machine));
     if (machine == NULL)

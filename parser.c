@@ -121,6 +121,7 @@ parser_init(lexer_t *lexer)
     parser->lexer = lexer;
     parser->cur_tok = NULL;
     parser->peek_tok = NULL;
+    parser->error = NULL;
     parser_next_token(parser);
     parser_next_token(parser);
     return parser;
