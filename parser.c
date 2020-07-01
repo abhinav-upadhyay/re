@@ -47,7 +47,6 @@ static void print_exp(expression_node_t *, size_t);
 
 static prefix_parse_fn prefix_fns[] = {
     parse_char_node, // char
-    NULL, // dot
     NULL, // plus
     NULL, // question
     NULL, // pipe
@@ -61,7 +60,6 @@ static prefix_parse_fn prefix_fns[] = {
 
 static postfix_parse_fn postfix_fns[] = {
     NULL, // char
-    NULL, // dot
     parse_postfix_expression, // plus
     parse_postfix_expression, // question
     NULL, // pipe
@@ -75,7 +73,6 @@ static postfix_parse_fn postfix_fns[] = {
 
 static infix_parse_fn infix_fns[] = {
     parse_infix_expression, // char
-    NULL, // dot
     NULL, // plus
     NULL, // question
     parse_infix_expression, // pipe
@@ -157,7 +154,6 @@ get_op(token_type toktype)
 {
     switch (toktype) {
     case CHAR:
-    case DOT:
         return CONCAT;
     case PIPE:
         return OR;
