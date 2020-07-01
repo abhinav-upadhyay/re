@@ -48,7 +48,10 @@ create_state(nfa_machine_t *machine, u_int8_t c)
     state = calloc(1, sizeof(*state));
     if (state == NULL)
         err(EXIT_FAILURE, "malloc failed");
-    state->c[c] = 1;
+    if (c == '.')
+        state->c[MATCH_ALL] = 1;
+    else
+        state->c[c] = 1;
     state->out1 = NULL;
     state->out = NULL;
     state->end_list = malloc(sizeof(end_state_list));
