@@ -141,8 +141,7 @@ regex_init(void)
 void
 parser_next_token(parser_t *parser)
 {
-
-    if (parser->cur_tok && parser->cur_tok->type != CHAR)
+    if (parser->cur_tok)
         token_free(parser->cur_tok);
     parser->cur_tok = parser->peek_tok;
     parser->peek_tok = next_token(parser->lexer);
@@ -185,8 +184,6 @@ parse_expression(parser_t *parser, operator_precedence_t precedence, token_type 
         return NULL;
     
     while (parser->peek_tok->type != terminator_tok) {
-        if (parser->peek_tok->type == terminator_tok)
-            break;
         if (precedence >= peek_precedence(parser))
             break;
         infix_parse_fn infix_fn = infix_fns[parser->peek_tok->type];
@@ -271,8 +268,8 @@ parse_infix_expression(parser_t *parser, expression_node_t *left)
 static expression_node_t *
 parse_char_class(parser_t *parser)
 {
-    parser_next_token(parser);
     char_class_t *char_class_node = create_char_class();
+    parser_next_token(parser);
     char prev_char_value = 0;
     while (parser->cur_tok->type != RBRACKET && parser->cur_tok->type != END_OF_FILE) {
         if (parser->cur_tok->type != CHAR_LITERAL) {
@@ -310,7 +307,6 @@ parse_char_class(parser_t *parser)
         parser->error = error;
         return NULL;
     }
-    // parser_next_token(parser);
     return (expression_node_t *) char_class_node;
 }
 
@@ -361,8 +357,7 @@ static expression_node_t *
 parse_char_node(parser_t *parser)
 {
     char_literal_t *char_node = create_char_literal();
-    // char_node->expression.node.token = token_copy(parser->cur_tok);
-    char_node->expression.node.token = parser->cur_tok;
+    char_node->expression.node.token = NULL;
     char_node->value = parser->cur_tok->literal[0];
     return (expression_node_t *) char_node;
 }
@@ -380,10 +375,8 @@ parse_regex(parser_t *parser)
 void
 parser_free(parser_t *parser)
 {
-    if (parser->cur_tok->type != CHAR)
-        token_free(parser->cur_tok);
-    if (parser->peek_tok->type != CHAR)
-        token_free(parser->peek_tok);
+    token_free(parser->cur_tok);
+    token_free(parser->peek_tok);
     lexer_free(parser->lexer);
     free(parser);
 }
@@ -417,11 +410,7 @@ void
 free_expression(expression_node_t *exp)
 {
     token_free(exp->node.token);
-    // free(exp->node.token_literal);
     switch (exp->type) {
-    case CHAR_LITERAL:
-        free(exp);
-        return;
     case INFIX_EXPRESSION:
         free_infix_expression((infix_expression_t *) exp);
         return;

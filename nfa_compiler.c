@@ -189,6 +189,7 @@ static nfa_state_t *
 compile_expression_node(nfa_machine_t *machine, expression_node_t *node)
 {
     nfa_state_t *state;
+    char_class_t *char_class;
     switch (node->type) {
     case INFIX_EXPRESSION:
         return compile_infix_node(machine, (infix_expression_t *) node);
@@ -196,6 +197,13 @@ compile_expression_node(nfa_machine_t *machine, expression_node_t *node)
         return compile_postfix_node(machine, (postfix_expression_t *) node);
     case CHAR_LITERAL:
         state = create_state(machine, ((char_literal_t *) node)->value);
+        state->out = (nfa_state_t *) &ACCEPTING_STATE;
+        state->end_list->state = state;
+        return state;
+    case CHAR_CLASS:
+        state = create_state(machine, NULL_STATE);
+        char_class = (char_class_t *) node;
+        memcpy(state->c, char_class->allowed_values, 256);
         state->out = (nfa_state_t *) &ACCEPTING_STATE;
         state->end_list->state = state;
         return state;
