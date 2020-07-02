@@ -59,6 +59,7 @@ create_state(nfa_machine_t *machine, u_int8_t c)
         err(EXIT_FAILURE, "malloc failed");
     state->end_list->state = NULL;
     state->end_list->next = NULL;
+    state->end_list->tail = state->end_list;
     cm_array_list_add(machine->state_list, state);
     state->state_idx = machine->state_list->length;
     return state;
@@ -89,10 +90,8 @@ compile_infix_node(nfa_machine_t *machine, infix_expression_t *node)
         state->out1 = right;
         free_end_list(state->end_list);
         state->end_list = left->end_list;
-        end_state_list *temp = state->end_list;
-        while (temp->next != NULL)
-            temp = temp->next;
-        temp->next = right->end_list;
+        state->end_list->tail->next = right->end_list;
+        state->end_list->tail = right->end_list->tail;
         left->end_list = NULL;
         right->end_list = NULL;
         return state;
@@ -127,6 +126,7 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
         state->out1 = (nfa_state_t *) &ACCEPTING_STATE;
         state->end_list->state = state;
         state->end_list->next = left->end_list;
+        state->end_list->tail = left->end_list->tail;
         left->end_list = NULL; //TODO? check
         return state;
     } else if (node->op == ZERO_OR_MORE) {

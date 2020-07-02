@@ -53,6 +53,7 @@ typedef struct nfa_state_t {
 typedef struct end_state_list {
     nfa_state_t *state;
     struct end_state_list *next;
+    struct end_state_list *tail;
 } end_state_list;
 
 typedef struct nfa_machine_t {
