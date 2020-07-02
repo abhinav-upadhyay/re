@@ -82,10 +82,24 @@ free_end_list(end_state_list *list)
 static nfa_state_t *
 compile_infix_node(nfa_machine_t *machine, infix_expression_t *node)
 {
-    nfa_state_t *left = compile_expression_node(machine, node->left);
-    nfa_state_t *right = compile_expression_node(machine, node->right);
     if (node->op == OR) {
+        // We can optimize the alternation of two char matches, such as `a|b` by
+        // combining the matches into a single node. Usually alternation results
+        // three nodes, one epsilon transition to one of the two actual state nodes
+        // on matching one of the characters.
+        if (node->left->type == CHAR_LITERAL && node->right->type == CHAR_LITERAL) {
+            char c1 = ((char_literal_t *) node->left)->value;
+            char c2 = ((char_literal_t *) node->right)->value;
+            nfa_state_t *combined_node = create_state(machine, c1);
+            combined_node->c[(u_int8_t) c2] = 1;
+            combined_node->out = (nfa_state_t *) &ACCEPTING_STATE;
+            combined_node->end_list->state = combined_node;
+            return combined_node;
+        }
+
         nfa_state_t *state = create_state(machine, NULL_STATE);
+        nfa_state_t *left = compile_expression_node(machine, node->left);
+        nfa_state_t *right = compile_expression_node(machine, node->right);
         state->out = left;
         state->out1 = right;
         free_end_list(state->end_list);
@@ -96,6 +110,8 @@ compile_infix_node(nfa_machine_t *machine, infix_expression_t *node)
         right->end_list = NULL;
         return state;
     } else if (node->op == CONCAT) {
+        nfa_state_t *left = compile_expression_node(machine, node->left);
+        nfa_state_t *right = compile_expression_node(machine, node->right);
         end_state_list *temp = left->end_list;
         while (temp != NULL) {
             if (temp->state->out && is_end_state(temp->state->out)) {
