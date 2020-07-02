@@ -30,6 +30,7 @@
 #ifndef AST_H
 #define AST_H
 
+#include <stdint.h>
 #include "token.h"
 
 typedef enum node_type_t {
@@ -44,6 +45,7 @@ static const char *node_type_strings[] = {
 
 typedef enum expression_type_t {
     CHAR_LITERAL,
+    CHAR_CLASS,
     INFIX_EXPRESSION,
     POSTFIX_EXPRESSION,
     PREFIX_EXPRESSION
@@ -51,6 +53,7 @@ typedef enum expression_type_t {
 
 static const char *expression_type_strings[] = {
     "CHAR",
+    "CHAR_CLASS",
     "INFIX_EXPRESSION",
     "POSTFIX_EXPRESSION",
     "PREFIX_EXPRESSION"
@@ -92,6 +95,11 @@ typedef struct char_literal_t {
     expression_node_t expression;
     char value;
 } char_literal_t;
+
+typedef struct char_class_t {
+    expression_node_t expression;
+    uint8_t allowed_values[256];
+} char_class_t;
 
 typedef struct infix_expression_t {
     expression_node_t expression;

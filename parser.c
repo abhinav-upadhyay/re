@@ -43,6 +43,7 @@ static expression_node_t * parse_infix_expression(parser_t *, expression_node_t 
 static expression_node_t * parse_postfix_expression(parser_t *, expression_node_t *);
 static expression_node_t * parse_char_node(parser_t *);
 static expression_node_t * parse_re_group(parser_t *);
+static expression_node_t * parse_char_class(parser_t *);
 static void print_exp(expression_node_t *, size_t);
 
 static prefix_parse_fn prefix_fns[] = {
@@ -54,6 +55,8 @@ static prefix_parse_fn prefix_fns[] = {
     parse_re_group, // lparen
     NULL, // rparen
     NULL, // star
+    parse_char_class, // lbracket
+    NULL, // rbracket
     NULL, // illegal
     NULL, // EOF
 };
@@ -67,6 +70,8 @@ static postfix_parse_fn postfix_fns[] = {
     NULL, // lparen
     NULL, // rparen
     parse_postfix_expression, // star
+    NULL, // lbracket
+    NULL, // rbracket
     NULL, // illegal
     NULL // EOF
 };
@@ -80,6 +85,8 @@ static infix_parse_fn infix_fns[] = {
     parse_infix_expression, // lparen
     NULL, // rparen
     NULL, // star
+    parse_infix_expression, // lbracket
+    NULL, // rbracket
     NULL, // illegal
     NULL // EOF
 };
@@ -93,13 +100,15 @@ static operator_precedence_t precedences[] = {
     LOWEST, // lparen
     LOWEST, // rparen
     PRE_ASTERISK, // star
+    LOWEST, // lbracket
+    LOWEST, // rbracket
     LOWEST, // illegal
     LOWEST // EOF
 };
 
 #define get_precedence(toktype) precedences[toktype]
-#define peek_precedence(parser) (parser->peek_tok->type == CHAR || parser->peek_tok->type == LPAREN? \
-    precedences[CAT]: precedences[parser->peek_tok->type])
+#define peek_precedence(parser) (parser->peek_tok->type == CHAR || parser->peek_tok->type == LPAREN \
+    || parser->peek_tok->type == LBRACKET? precedences[CAT]: precedences[parser->peek_tok->type])
 
 
 parser_t *
@@ -135,8 +144,6 @@ parser_next_token(parser_t *parser)
 
     if (parser->cur_tok && parser->cur_tok->type != CHAR)
         token_free(parser->cur_tok);
-    // if (parser->cur_tok->type == END_OF_FILE)
-        // return;
     parser->cur_tok = parser->peek_tok;
     parser->peek_tok = next_token(parser->lexer);
 }
@@ -174,6 +181,8 @@ parse_expression(parser_t *parser, operator_precedence_t precedence, token_type 
         return NULL;
     }
     left = prefix_fn(parser);
+    if (parser->error)
+        return NULL;
     
     while (parser->peek_tok->type != terminator_tok) {
         if (parser->peek_tok->type == terminator_tok)
@@ -184,16 +193,18 @@ parse_expression(parser_t *parser, operator_precedence_t precedence, token_type 
         if (infix_fn != NULL) {
             parser_next_token(parser);
             expression_node_t *right = infix_fn(parser, left);
+            if (parser->error != NULL)
+                return NULL;
             left = right;
-            // parser_next_token(parser);
             continue;
         }
         postfix_parse_fn postfix_fn = postfix_fns[parser->peek_tok->type];
         if (postfix_fn != NULL) {
             parser_next_token(parser);
             expression_node_t *right = postfix_fn(parser, left);
+            if (parser->error)
+                return NULL;
             left = right;
-            // parser_next_token(parser);
             continue;
         }
         break;
@@ -218,7 +229,6 @@ static expression_node_t *
 parse_postfix_expression(parser_t *parser, expression_node_t *left)
 {
     postfix_expression_t *postfix_exp = create_postfix_exp();
-    // postfix_exp->expression.node.token = token_copy(parser->cur_tok);
     postfix_exp->expression.node.token = NULL;
     postfix_exp->left = left;
     postfix_exp->op = get_op(parser->cur_tok->type);
@@ -243,13 +253,10 @@ parse_infix_expression(parser_t *parser, expression_node_t *left)
 {
     operator_precedence_t precedence;
     infix_expression_t *infix_exp = create_infix_exp();
-    // infix_exp->expression.node.token = token_copy(parser->cur_tok);
     infix_exp->expression.node.token = NULL;
     infix_exp->left = left;
-    //?? should we call parse_expression here? It should somehow not parse too much, how to stop?
-    // we can go case by case - if next token is char, just parse it. If next token is
     token_type terminating_tok = parser->cur_tok->type == LPAREN? RPAREN: END_OF_FILE;
-    if (parser->cur_tok->type == CHAR_LITERAL || parser->cur_tok->type == LPAREN) {
+    if (parser->cur_tok->type == CHAR_LITERAL || parser->cur_tok->type == LPAREN || parser->cur_tok->type == LBRACKET) {
         infix_exp->op = CONCAT;
         precedence = get_precedence(CAT);
     } else {
@@ -259,6 +266,52 @@ parse_infix_expression(parser_t *parser, expression_node_t *left)
     }
     infix_exp->right = parse_expression(parser, precedence, terminating_tok);
     return (expression_node_t *) infix_exp;
+}
+
+static expression_node_t *
+parse_char_class(parser_t *parser)
+{
+    parser_next_token(parser);
+    char_class_t *char_class_node = create_char_class();
+    char prev_char_value = 0;
+    while (parser->cur_tok->type != RBRACKET && parser->cur_tok->type != END_OF_FILE) {
+        if (parser->cur_tok->type != CHAR_LITERAL) {
+            char *error = NULL;
+            asprintf(&error, "Unexpected token type %s inside a character class", get_token_name(parser->cur_tok->type));
+            parser->error = error;
+            return NULL;
+        }
+        uint8_t value = (uint8_t) parser->cur_tok->literal[0];
+        if (value == '-' && prev_char_value) {
+            if (parser->peek_tok->type == CHAR_LITERAL) {
+                parser_next_token(parser);
+                uint8_t range_end = parser->cur_tok->literal[0];
+                if (value >= range_end) {
+                    char *error = NULL;
+                    asprintf(&error, "Bad range");
+                    parser->error = error;
+                    return NULL;
+                }
+                for (uint8_t c = prev_char_value + 1; c <= range_end; c++)
+                    char_class_node->allowed_values[c] = 1;
+                prev_char_value = 0; //reset, so that we can parse more ranges
+            } else if (parser->peek_tok->type == RBRACKET) {
+                char_class_node->allowed_values['-'] = 1;
+            }
+        } else {
+            char_class_node->allowed_values[value] = 1;
+            prev_char_value = value;
+        }
+        parser_next_token(parser);
+    }
+    if (parser->cur_tok->type != RBRACKET) {
+        char *error = NULL;
+        asprintf(&error, "Missing matching ]");
+        parser->error = error;
+        return NULL;
+    }
+    // parser_next_token(parser);
+    return (expression_node_t *) char_class_node;
 }
 
 static expression_node_t *
@@ -275,8 +328,20 @@ parse_re_group(parser_t *parser)
     if (parser->peek_tok->type != RPAREN)
         errx(EXIT_FAILURE, "Missing a matching )");
     parser_next_token(parser);
-    // parser_next_token(parser);
     return exp;
+}
+
+char_class_t *
+create_char_class(void)
+{
+    char_class_t *char_class;
+    char_class = calloc(1, sizeof(*char_class));
+    if (char_class == NULL)
+        err(EXIT_FAILURE, "malloc failed");
+    char_class->expression.type = CHAR_CLASS;
+    char_class->expression.node.type = EXPRESSION_NODE;
+    char_class->expression.node.string = to_string;
+    return char_class;
 }
 
 char_literal_t *
@@ -380,6 +445,26 @@ char_to_string(char_literal_t *node)
 }
 
 static char *
+char_class_to_string(char_class_t *node)
+{
+    size_t len = 0;
+    char *s;
+    for (size_t i = 0; i < 256; i++) {
+        if (node->allowed_values[i])
+            len++;
+    }
+    s = malloc(len + 1);
+    if (s == NULL)
+        err(EXIT_FAILURE, "malloc failed");
+    for (size_t i = 0, j = 0; i < 256; i++) {
+        if (node->allowed_values[i])
+            s[j++] = i;
+    }
+    s[len] = 0;
+    return s;
+}
+
+static char *
 infix_to_string(infix_expression_t *node)
 {
     char *left = expression_to_string(node->left);
@@ -408,6 +493,8 @@ expression_to_string(expression_node_t *node)
         return postfix_to_string((postfix_expression_t *) node);
     case CHAR_LITERAL:
         return char_to_string((char_literal_t *) node);
+    case CHAR_CLASS:
+        return char_class_to_string((char_class_t *) node);
     default:
         return NULL;
     }

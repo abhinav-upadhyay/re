@@ -26,6 +26,8 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+#include <stdarg.h>
+#include <string.h>
 
 #include "ast.h"
 #include "lexer.h"
@@ -61,6 +63,17 @@ char_node(char c)
     return (expression_node_t *) char_exp;
 }
 
+static expression_node_t *
+char_class_node(size_t n, ...)
+{
+    char_class_t *char_class = create_char_class();
+    va_list arglist;
+    va_start(arglist, n);
+    for (size_t i = 0; i < n; i++)
+        char_class->allowed_values[(uint8_t) va_arg(arglist, uint8_t)] = 1;
+    return (expression_node_t *) char_class;
+}
+
 static int
 compare_char_node(char_literal_t *expected, char_literal_t *actual)
 {
@@ -81,6 +94,12 @@ compare_infix_expression(infix_expression_t *expected, infix_expression_t *actua
 }
 
 static int
+compare_char_class(char_class_t *expected, char_class_t *actual)
+{
+    return !memcmp(expected->allowed_values, actual->allowed_values, 256);
+}
+
+static int
 compare_expression(expression_node_t *expected, expression_node_t *actual)
 {
     if (expected->type != actual->type)
@@ -93,6 +112,8 @@ compare_expression(expression_node_t *expected, expression_node_t *actual)
         return compare_postfix_expression((postfix_expression_t *) expected, (postfix_expression_t *) actual);
     case CHAR_LITERAL:
         return compare_char_node((char_literal_t *) expected, (char_literal_t *) actual);
+    case CHAR_CLASS:
+        return compare_char_class((char_class_t *) expected, (char_class_t *) actual);
     default:
         return 0;
     }
@@ -219,6 +240,42 @@ test_simple_repitition(void)
         {
             "a?a?a",
             infix_node(infix_node(postfix_node(char_node('a'), ZERO_OR_ONE), postfix_node(char_node('a'), ZERO_OR_ONE), CONCAT), char_node('a'), CONCAT)
+        },
+        {
+            "[a-z]",
+            char_class_node(26, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z')
+        },
+        {
+            "a[0-9a-d]+b",
+            infix_node(infix_node(char_node('a'), postfix_node(char_class_node(14, '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd'), ONE_OR_MORE), CONCAT), char_node('b'), CONCAT)
+        },
+        {
+            "f+[afg12]",
+            infix_node(postfix_node(char_node('f'), ONE_OR_MORE), char_class_node(5, 'a', 'f', 'g', '1', '2') , CONCAT)
+        },
+        {
+            "[-a-d]*",
+            postfix_node(char_class_node(5, '-', 'a', 'b', 'c', 'd'), ZERO_OR_MORE)
+        },
+        {
+            "a[0-3a-d]",
+            infix_node(char_node('a'), char_class_node(8, '0', '1', '2', '3', 'a', 'b', 'c', 'd'), CONCAT)
+        },
+        {
+            "[ab-]",
+            char_class_node(3, 'a', 'b', '-')
+        },
+        {
+            "[a-d-f]",
+            char_class_node(6, 'a', 'b', 'c', 'd', '-', 'f')
+        },
+        {
+            "[a-d--9]",
+            char_class_node(17, 'a', 'b', 'c', 'd', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+        },
+        {
+            "[a-d0-4]",
+            char_class_node(9, 'a', 'b', 'c', 'd', '0', '1', '2', '3', '4')
         }
     };
 

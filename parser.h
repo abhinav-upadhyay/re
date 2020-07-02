@@ -64,6 +64,7 @@ void regex_free(regex_t *);
 postfix_expression_t *create_postfix_exp(void);
 infix_expression_t *create_infix_exp(void);
 char_literal_t *create_char_literal(void);
+char_class_t *create_char_class(void);
 void free_expression(expression_node_t *);
 
 #endif
