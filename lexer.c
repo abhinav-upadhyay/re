@@ -97,6 +97,16 @@ next_token(lexer_t *l)
         t->literal = "|";
         read_char(l);
         break;
+    case '[':
+        t->type = LBRACKET;
+        t->literal = "[";
+        read_char(l);
+        break;
+    case ']':
+        t->type = RBRACKET;
+        t->literal = "]";
+        read_char(l);
+        break;
     case 0:
         t->type = END_OF_FILE;
         t->literal = "";

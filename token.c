@@ -32,32 +32,6 @@
 #include <stdlib.h>
 #include "token.h"
 
-token_type
-get_token_type(const char *tok_literal)
-{
-    if (tok_literal[0] == 0)
-        return END_OF_FILE;
-
-    switch (tok_literal[0]) {
-    case '+':
-        return PLUS;
-    case '?':
-        return QUESTION;
-    case '(':
-        return LPAREN;
-    case ')':
-        return RPAREN;
-    case '|':
-        return PIPE;
-    case '*':
-        return STAR;
-    default:
-        return CHAR;
-    }
-
-    return CHAR;
-}
-
 token_t *
 token_copy(token_t *tok)
 {

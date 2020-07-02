@@ -39,6 +39,8 @@ typedef enum token_type {
     LPAREN,
     RPAREN,
     STAR,
+    LBRACKET,
+    RBRACKET,
     ILLEGAL,
     END_OF_FILE
 } token_type;
@@ -52,6 +54,8 @@ static const char *token_names[] = {
     "LPAREN",
     "RPAREN",
     "STAR",
+    "LBRACKET",
+    "RBRACKET",
     "ILLEGAL",
     "EOF"
 };
@@ -62,7 +66,6 @@ typedef struct token_t {
 } token_t;
 
 #define get_token_name(tok_type) token_names[tok_type]
-token_type get_token_type(const char *);
 token_t *token_copy(token_t *);
 void token_free(token_t *);
 

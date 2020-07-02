@@ -89,6 +89,31 @@ main(int argc, char **argv)
                 {CHAR, "b"},
                 {END_OF_FILE, ""}
             }
+        },
+        {
+            "[a-z]",
+            {
+                {LBRACKET, "["},
+                {CHAR, "a"},
+                {CHAR, "-"},
+                {CHAR, "z"},
+                {RBRACKET, "]"},
+                {END_OF_FILE, ""}
+            }
+        },
+        {
+            "a?[0-9]+",
+            {
+                {CHAR, "a"},
+                {QUESTION, "?"},
+                {LBRACKET, "["},
+                {CHAR, "0"},
+                {CHAR, "-"},
+                {CHAR, "9"},
+                {RBRACKET, "]"},
+                {PLUS, "+"},
+                {END_OF_FILE, ""}
+            }
         }
     };
 
