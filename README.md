@@ -7,7 +7,9 @@ One key difference is that instead of using the conversion of the regular
 expression to postfix and then using a pushdown stack to compile to an NFA - I opted to parse the expression into an AST
 and then traverse the AST to compile to an NFA.
 
-Right now the compiler only supports the `?`, `*`, `+`, `|` operators and expression concatenation. Adding support for character classes such as `[a-z]`, anchored matches and reptition operators (such as `{m}`, `{m,n}`) should be easy.
+Right now the compiler only supports the `?`, `*`, `+`, `|`, `.` operators and expression concatenation.
+It also supports range based character such as `[a-z0-9]`.
+Anchored matches and reptition operators (such as `{m}`, `{m,n}`) should be easy to add but not yet done.
 
 ### Compilation
 `$ make clean && make`
