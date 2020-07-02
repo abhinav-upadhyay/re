@@ -84,31 +84,22 @@ static infix_parse_fn infix_fns[] = {
     NULL // EOF
 };
 
-static operator_precedence_t
-get_precedence(token_type toktype)
-{
-    switch (toktype) {
-        case PIPE:
-            return PRE_OR;
-        case CAT:
-            return PRE_CAT;
-        case PLUS:
-        case QUESTION:
-        case STAR:
-            return PRE_ASTERISK;
-        default:
-            return LOWEST;    
-    }
-}
+static operator_precedence_t precedences[] = {
+    LOWEST, // char
+    PRE_ASTERISK, // plus
+    PRE_ASTERISK, // question
+    PRE_OR, // pipe
+    PRE_CAT, // cat
+    LOWEST, // lparen
+    LOWEST, // rparen
+    PRE_ASTERISK, // star
+    LOWEST, // illegal
+    LOWEST // EOF
+};
 
-static operator_precedence_t
-peek_precedence(parser_t *parser)
-{
-    if (parser->peek_tok->type == CHAR || parser->peek_tok->type == LPAREN)
-        return get_precedence(CAT);
-    else
-        return get_precedence(parser->peek_tok->type);;
-}
+#define get_precedence(toktype) precedences[toktype]
+#define peek_precedence(parser) (parser->peek_tok->type == CHAR || parser->peek_tok->type == LPAREN? \
+    precedences[CAT]: precedences[parser->peek_tok->type])
 
 
 parser_t *
@@ -142,7 +133,7 @@ void
 parser_next_token(parser_t *parser)
 {
 
-    if (parser->cur_tok) // && parser->cur_tok->type != END_OF_FILE)
+    if (parser->cur_tok && parser->cur_tok->type != CHAR)
         token_free(parser->cur_tok);
     // if (parser->cur_tok->type == END_OF_FILE)
         // return;
@@ -227,8 +218,8 @@ static expression_node_t *
 parse_postfix_expression(parser_t *parser, expression_node_t *left)
 {
     postfix_expression_t *postfix_exp = create_postfix_exp();
-    postfix_exp->expression.node.token = token_copy(parser->cur_tok);
-    // postfix_exp->expression.node.token_literal = strdup(parser->cur_tok->literal);
+    // postfix_exp->expression.node.token = token_copy(parser->cur_tok);
+    postfix_exp->expression.node.token = NULL;
     postfix_exp->left = left;
     postfix_exp->op = get_op(parser->cur_tok->type);
     return (expression_node_t *) postfix_exp;
@@ -252,8 +243,8 @@ parse_infix_expression(parser_t *parser, expression_node_t *left)
 {
     operator_precedence_t precedence;
     infix_expression_t *infix_exp = create_infix_exp();
-    infix_exp->expression.node.token = token_copy(parser->cur_tok);
-    // infix_exp->expression.node.token_literal = strdup(parser->cur_tok->literal);
+    // infix_exp->expression.node.token = token_copy(parser->cur_tok);
+    infix_exp->expression.node.token = NULL;
     infix_exp->left = left;
     //?? should we call parse_expression here? It should somehow not parse too much, how to stop?
     // we can go case by case - if next token is char, just parse it. If next token is
@@ -305,8 +296,8 @@ static expression_node_t *
 parse_char_node(parser_t *parser)
 {
     char_literal_t *char_node = create_char_literal();
-    char_node->expression.node.token = token_copy(parser->cur_tok);
-    // char_node->expression.node.token_literal = strdup(parser->cur_tok->literal);
+    // char_node->expression.node.token = token_copy(parser->cur_tok);
+    char_node->expression.node.token = parser->cur_tok;
     char_node->value = parser->cur_tok->literal[0];
     return (expression_node_t *) char_node;
 }
@@ -324,8 +315,10 @@ parse_regex(parser_t *parser)
 void
 parser_free(parser_t *parser)
 {
-    token_free(parser->cur_tok);
-    token_free(parser->peek_tok);
+    if (parser->cur_tok->type != CHAR)
+        token_free(parser->cur_tok);
+    if (parser->peek_tok->type != CHAR)
+        token_free(parser->peek_tok);
     lexer_free(parser->lexer);
     free(parser);
 }
