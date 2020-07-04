@@ -141,8 +141,7 @@ regex_init(void)
 void
 parser_next_token(parser_t *parser)
 {
-    if (parser->cur_tok)
-        token_free(parser->cur_tok);
+    token_free(parser->cur_tok);
     parser->cur_tok = parser->peek_tok;
     parser->peek_tok = next_token(parser->lexer);
 }
@@ -187,16 +186,16 @@ parse_expression(parser_t *parser, operator_precedence_t precedence, token_type 
         if (precedence >= peek_precedence(parser))
             break;
         infix_parse_fn infix_fn = infix_fns[parser->peek_tok->type];
-        if (infix_fn != NULL) {
+        if (infix_fn) {
             parser_next_token(parser);
             expression_node_t *right = infix_fn(parser, left);
-            if (parser->error != NULL)
+            if (parser->error)
                 return NULL;
             left = right;
             continue;
         }
         postfix_parse_fn postfix_fn = postfix_fns[parser->peek_tok->type];
-        if (postfix_fn != NULL) {
+        if (postfix_fn) {
             parser_next_token(parser);
             expression_node_t *right = postfix_fn(parser, left);
             if (parser->error)
@@ -383,22 +382,6 @@ parser_free(parser_t *parser)
 
 
 
-static void
-free_infix_expression(infix_expression_t *exp)
-{
-    free_expression(exp->left);
-    free_expression(exp->right);
-    free(exp);
-}
-
-static void
-free_postfix_expression(postfix_expression_t *exp)
-{
-    free_expression(exp->left);
-    free(exp);
-}
-
-
 void
 regex_free(regex_t *regex)
 {
@@ -409,13 +392,20 @@ regex_free(regex_t *regex)
 void
 free_expression(expression_node_t *exp)
 {
+    infix_expression_t *infix;
+    postfix_expression_t *postfix;
     token_free(exp->node.token);
     switch (exp->type) {
     case INFIX_EXPRESSION:
-        free_infix_expression((infix_expression_t *) exp);
+        infix = (infix_expression_t *) exp;
+        free_expression(infix->left);
+        free_expression(infix->right);
+        free(exp);
         return;
     case POSTFIX_EXPRESSION:
-        free_postfix_expression((postfix_expression_t *) exp);
+        postfix = (postfix_expression_t *) exp;
+        free_expression(postfix->left);
+        free(exp);
         return;
     default:
         free(exp);
