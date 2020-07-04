@@ -119,11 +119,6 @@ next_token(lexer_t *l)
         read_char(l);
         break;
     }
-
-    if (t->type != ILLEGAL) {
-        if (t->literal == NULL)
-            err(EXIT_FAILURE, "malloc failed");
-    }
     return t;
 }
 
