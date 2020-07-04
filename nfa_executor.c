@@ -42,36 +42,31 @@ static char * idx_list;
 static size_t CLIST_INDEX;
 static size_t NLIST_INDEX;
 
-
-static void
-add_state_to_list(nfa_state_t *s)
-{
-    if (idx_list[s->state_idx] == 0) {
-        idx_list[s->state_idx] = 1;
-        nlist[NLIST_INDEX++] = s;
+#define add_state_to_list(s) if (idx_list[s->state_idx] == 0) { \
+    idx_list[s->state_idx] = 1; \
+    nlist[NLIST_INDEX++] = s; \
     }
-}
-
 
 static void
 find_match_state(nfa_state_t *s, u_int8_t c)
 {
     if (s == NULL) 
         return;
+    if (is_end_state(s)) {
+        add_state_to_list(s);
+        return;
+    }
+
     if (is_null_state(s)) {
         find_match_state(s->out, c);
         find_match_state(s->out1, c);
         return;
     }
 
-    if (is_end_state(s)) {
-        add_state_to_list(s);
-    }
-
     if (!is_matching_state(s, c))
         return;
     add_state_to_list(s);
-    if (s->out && is_null_state(s->out)) {
+    if (is_null_state(s->out)) {
         if ((is_matching_state(s->out->out, c) || is_end_state(s->out->out))) {
             add_state_to_list(s->out->out);
         }
@@ -96,12 +91,12 @@ check_end_state(nfa_state_t *s)
         return 0;
     if (is_end_state(s))
         return 1;
-    if (s->out && is_end_state(s->out))
+    if (is_end_state(s->out))
         return 1;
     if (s->out1 && is_end_state(s->out1))
         return 1;
 
-    if (s->out && is_null_state(s->out)) {
+    if (is_null_state(s->out)) {
         if (is_end_state(s->out->out1) || is_end_state(s->out->out))
             return 1;
     }
@@ -114,8 +109,7 @@ nfa_execute(nfa_machine_t *machine, const char *string)
     clist = calloc(LIST_SIZE, sizeof(nfa_state_t *));
     nlist = calloc(LIST_SIZE, sizeof(nfa_state_t *));
     size_t idx_len = machine->state_list->length + 1;
-    idx_list = malloc(idx_len);
-    memset(idx_list, 0, idx_len);
+    idx_list = calloc(1, idx_len);
     CLIST_INDEX = 0;
     NLIST_INDEX = 0;
     int retval = 0;
