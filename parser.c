@@ -270,6 +270,12 @@ parse_char_class(parser_t *parser)
     char_class_t *char_class_node = create_char_class();
     parser_next_token(parser);
     char prev_char_value = 0;
+    if (parser->cur_tok->type == RBRACKET) {
+        char_class_node->allowed_values[']'] = 1;
+        prev_char_value = ']';
+        parser_next_token(parser);
+    }
+
     while (parser->cur_tok->type != RBRACKET && parser->cur_tok->type != END_OF_FILE) {
         if (parser->cur_tok->type != CHAR_LITERAL) {
             char *error = NULL;
