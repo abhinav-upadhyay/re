@@ -63,10 +63,10 @@ execute(size_t n)
     start = clock();
     nfa_machine_t * machine = compile_regex(pattern);
     nfa_execute(machine, string);
-    free(pattern);
-    free(string);
     free_nfa(machine);
     end = clock();
+    free(pattern);
+    free(string);
     time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("%zu,%f\n", n, time_used);
 }
