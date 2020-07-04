@@ -50,8 +50,6 @@ static size_t NLIST_INDEX;
 static void
 find_match_state(nfa_state_t *s, u_int8_t c)
 {
-    if (s == NULL) 
-        return;
     if (is_end_state(s)) {
         add_state_to_list(s);
         return;
@@ -109,8 +107,22 @@ nfa_execute(nfa_machine_t *machine, const char *string)
         u_int8_t c = (u_int8_t) *string++;
         for (size_t i = 0; i < CLIST_INDEX; i++) {
             nfa_state_t *s = clist[i];
-            find_match_state(is_end_state(s)? s: s->out, c);
-            find_match_state(is_end_state(s)? s: s->out1, c);
+            if (is_end_state(s)) {
+                add_state_to_list(s);
+                continue;
+            }
+            if (is_end_state(s->out)) {
+                add_state_to_list(s->out);
+            } else {
+                find_match_state(s->out, c);
+            }
+            if (s->out1) {
+                if (is_end_state(s->out1)) {
+                    add_state_to_list(s->out1);
+                } else {
+                    find_match_state(s->out1, c);
+                }
+            }
         }
         memset(idx_list, 0, idx_len);
         CLIST_INDEX = NLIST_INDEX;
