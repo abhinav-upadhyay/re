@@ -38,12 +38,13 @@
 #define LIST_SIZE 128
 static nfa_state_t ** clist;
 static nfa_state_t ** nlist;
-static char * idx_list;
+static uint8_t *idx_list;
 static size_t CLIST_INDEX;
 static size_t NLIST_INDEX;
+static size_t counter = 0;
 
-#define add_state_to_list(s) if (idx_list[s->state_idx] == 0) { \
-    idx_list[s->state_idx] = 1; \
+#define add_state_to_list(s) if (idx_list[s->state_idx] <= counter) { \
+    idx_list[s->state_idx]++; \
     nlist[NLIST_INDEX++] = s; \
     }
 
@@ -69,8 +70,6 @@ find_match_state(nfa_state_t *s, u_int8_t c)
 static int
 check_end_state(nfa_state_t *s)
 {
-    if (s == NULL)
-        return 0;
     if (is_end_state(s))
         return 1;
     if (is_end_state(s->out))
@@ -95,8 +94,9 @@ nfa_execute(nfa_machine_t *machine, const char *string)
     CLIST_INDEX = 0;
     NLIST_INDEX = 0;
     int retval = 0;
+    counter = 0;
     find_match_state(machine->start, *string++);
-    memset(idx_list, 0, idx_len);
+    counter++;
     CLIST_INDEX = NLIST_INDEX;
     NLIST_INDEX = 0;
     nfa_state_t **temp_list = nlist;
@@ -124,18 +124,17 @@ nfa_execute(nfa_machine_t *machine, const char *string)
                 }
             }
         }
-        memset(idx_list, 0, idx_len);
+        counter++;
         CLIST_INDEX = NLIST_INDEX;
         NLIST_INDEX = 0;
-        nfa_state_t **temp_list = nlist;
+        temp_list = nlist;
         nlist = clist;
         clist = temp_list;
         if (CLIST_INDEX == 0)
             break;
     }
     for (size_t i = 0; i < CLIST_INDEX; i++) {
-        nfa_state_t *s = clist[i];
-        if (check_end_state(s)) {
+        if (check_end_state(clist[i])) {
             retval = 1;
             break;
         }
