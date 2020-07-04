@@ -66,22 +66,6 @@ find_match_state(nfa_state_t *s, u_int8_t c)
     if (!is_matching_state(s, c))
         return;
     add_state_to_list(s);
-    if (is_null_state(s->out)) {
-        if ((is_matching_state(s->out->out, c) || is_end_state(s->out->out))) {
-            add_state_to_list(s->out->out);
-        }
-        if (s->out->out1 && (is_matching_state(s->out->out1, c) || is_end_state(s->out->out1))) {
-            add_state_to_list(s->out->out1);
-        }
-    }
-    if (s->out1 && is_null_state(s->out1)) {
-        if (is_matching_state(s->out1->out, c) || is_end_state(s->out1->out)) {
-            add_state_to_list(s->out1->out);
-        }
-        if (s->out1->out1 && (is_matching_state(s->out1->out1, c) || is_end_state(s->out1->out1))) {
-            add_state_to_list(s->out1->out1);
-        }
-    }
 }
 
 static int
