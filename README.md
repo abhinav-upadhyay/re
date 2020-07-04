@@ -42,4 +42,8 @@ second value being time taken to compile and execute the regular expression agai
 Following is a comparison of performance of this implementation vs the Java regular expression library
 ![benchmark](https://github.com/abhinav-upadhyay/re/raw/master/benchmark.png)
 
+Another benchmark is provided for expression `(a|aa)*b` for string of the form `a...a!`. With each increasing `a` in the
+string, the Java regex engine gets slower exponentially.
+![benchmark2](https://github.com/abhinav-upadhyay/re/raw/master/benchmark2.png)
+
 
