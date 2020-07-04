@@ -52,12 +52,9 @@ create_state(nfa_machine_t *machine, u_int8_t c)
         state->c[MATCH_ALL] = 1;
     else
         state->c[c] = 1;
-    state->out1 = NULL;
-    state->out = NULL;
     state->end_list = malloc(sizeof(end_state_list));
     if (state->end_list == NULL)
         err(EXIT_FAILURE, "malloc failed");
-    state->end_list->state = NULL;
     state->end_list->next = NULL;
     state->end_list->tail = state->end_list;
     cm_array_list_add(machine->state_list, state);
@@ -68,8 +65,6 @@ create_state(nfa_machine_t *machine, u_int8_t c)
 static void
 free_end_list(end_state_list *list)
 {
-    if (list == NULL)
-        return;
     end_state_list *node = list;
     end_state_list *temp;
     while (node) {
@@ -113,8 +108,8 @@ compile_infix_node(nfa_machine_t *machine, infix_expression_t *node)
         nfa_state_t *left = compile_expression_node(machine, node->left);
         nfa_state_t *right = compile_expression_node(machine, node->right);
         end_state_list *temp = left->end_list;
-        while (temp != NULL) {
-            if (temp->state->out && is_end_state(temp->state->out)) {
+        while (temp) {
+            if (is_end_state(temp->state->out)) {
                 temp->state->out = right;
             }
             if (temp->state->out1 && is_end_state(temp->state->out1)) {
@@ -148,8 +143,8 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
     } else if (node->op == ZERO_OR_MORE) {
         state->out = left;
         end_state_list *temp = left->end_list;
-        while (temp != NULL) {
-            if (temp->state->out && is_end_state(temp->state->out)) {
+        while (temp) {
+            if (is_end_state(temp->state->out)) {
                 temp->state->out = state;
             }
             if (temp->state->out1 && is_end_state(temp->state->out1)) {
@@ -165,7 +160,7 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
     } else if (node->op == ONE_OR_MORE) {
         end_state_list *temp = left->end_list;
         while (temp) {
-            if (temp->state->out && is_end_state(temp->state->out)) {
+            if (is_end_state(temp->state->out)) {
                 temp->state->out = state;
             }
             if (temp->state->out1 && is_end_state(temp->state->out1)) {
@@ -224,7 +219,7 @@ compile_regex(const char *regex_pattern)
     machine = malloc(sizeof(*machine));
     if (machine == NULL)
         err(EXIT_FAILURE, "malloc failed");
-    machine->state_list = cm_array_list_init(64, NULL);
+    machine->state_list = cm_array_list_init(128, NULL);
     nfa_state_t *compiled_regex = compile_expression_node(machine, (expression_node_t *) regex->root);
     parser_free(parser);
     regex_free(regex);
