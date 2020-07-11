@@ -1,12 +1,12 @@
 CC=clang
-CFLAGS+=-g -D_GNU_SOURCE
+CFLAGS+=-g -D_GNU_SOURCE -march=native -std=c11
 all: lexer_tests parser_tests nfa_executor_tests benchmark
 
 lexer_tests: lexer_tests.o token.o lexer.o
 	$(CC) $(CFLAGS) -o lexer_tests lexer_tests.o token.o lexer.o
 
-parser_tests: parser_tests.o token.o lexer.o parser.o
-	$(CC) $(CFLAGS) -o parser_tests parser_tests.o token.o lexer.o parser.o
+parser_tests: parser_tests.o token.o lexer.o parser.o re_utils.o
+	$(CC) $(CFLAGS) -o parser_tests parser_tests.o token.o lexer.o parser.o re_utils.o
 
 nfa_executor_tests: nfa_executor_tests.o nfa_executor.o nfa_compiler.o parser.o lexer.o token.o re_utils.o
 	$(CC) $(CFLAGS) -o nfa_executor_tests nfa_executor_tests.o nfa_executor.o nfa_compiler.o parser.o lexer.o token.o re_utils.o
