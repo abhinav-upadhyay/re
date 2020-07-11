@@ -289,9 +289,8 @@ test_simple_repitition(void)
         lexer = lexer_init(input);
         parser = parser_init(lexer);
         regex = parse_regex(parser);
-        test(regex->root->type == EXPRESSION_NODE, "Expected an expression node, got %s\n", node_to_string(regex->root->type));
         expression_node_t *root = (expression_node_t *) regex->root;
-        char *expected_string = t.expected_exp->node.string((node_t *) t.expected_exp);
+        char *expected_string = t.expected_exp->string(t.expected_exp);
         char *actual_string = regex->root->string(regex->root);
         test(compare_expression(t.expected_exp, root), "Expected expression %s, got %s\n", expected_string, actual_string);
         free(expected_string);
