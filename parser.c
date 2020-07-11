@@ -38,7 +38,7 @@
 #include "token.h"
 
 static char *expression_to_string(expression_node_t *);
-static char * to_string(node_t *);
+static char * to_string(expression_node_t *);
 static expression_node_t * parse_infix_expression(parser_t *, expression_node_t *);
 static expression_node_t * parse_postfix_expression(parser_t *, expression_node_t *);
 static expression_node_t * parse_char_node(parser_t *);
@@ -217,9 +217,7 @@ create_postfix_exp(void)
     if (postfix_exp == NULL)
         err(EXIT_FAILURE, "malloc failed");
     postfix_exp->expression.type = POSTFIX_EXPRESSION;
-    postfix_exp->expression.node.type = EXPRESSION_NODE;
-    postfix_exp->expression.node.string = to_string;
-    postfix_exp->expression.node.token = NULL;
+    postfix_exp->expression.string = to_string;
     return postfix_exp;
 }
 
@@ -232,7 +230,6 @@ parse_postfix_expression(parser_t *parser, expression_node_t *left)
         infix_exp->op = OR;
         char_literal_t *null_node = create_char_literal();
         null_node->value = NULL_STATE;
-        null_node->expression.node.token = NULL;
         infix_exp->left = (expression_node_t *) null_node;
         infix_exp->right = left;
         return (expression_node_t *) infix_exp;
@@ -261,9 +258,7 @@ create_infix_exp(void)
     if (infix_exp == NULL)
         err(EXIT_FAILURE, "malloc failed");
     infix_exp->expression.type = INFIX_EXPRESSION;
-    infix_exp->expression.node.type = EXPRESSION_NODE;
-    infix_exp->expression.node.string = to_string;
-    infix_exp->expression.node.token = NULL;
+    infix_exp->expression.string = to_string;
     return infix_exp;
 }
 
@@ -272,7 +267,6 @@ parse_infix_expression(parser_t *parser, expression_node_t *left)
 {
     operator_precedence_t precedence;
     infix_expression_t *infix_exp = create_infix_exp();
-    infix_exp->expression.node.token = NULL;
     infix_exp->left = left;
     token_type terminating_tok = parser->cur_tok->type == LPAREN? RPAREN: END_OF_FILE;
     if (parser->cur_tok->type == CHAR_LITERAL || parser->cur_tok->type == LPAREN || parser->cur_tok->type == LBRACKET) {
@@ -363,9 +357,7 @@ create_char_class(void)
     if (char_class == NULL)
         err(EXIT_FAILURE, "malloc failed");
     char_class->expression.type = CHAR_CLASS;
-    char_class->expression.node.type = EXPRESSION_NODE;
-    char_class->expression.node.string = to_string;
-    char_class->expression.node.token = NULL;
+    char_class->expression.string = to_string;
     return char_class;
 }
 
@@ -377,9 +369,7 @@ create_char_literal(void)
     if (char_node == NULL)
         err(EXIT_FAILURE, "malloc failed");
     char_node->expression.type = CHAR_LITERAL;
-    char_node->expression.node.type = EXPRESSION_NODE;
-    char_node->expression.node.string = to_string;
-    char_node->expression.node.token = NULL;
+    char_node->expression.string = to_string;
     return char_node;
 }
 
@@ -387,7 +377,6 @@ static expression_node_t *
 parse_char_node(parser_t *parser)
 {
     char_literal_t *char_node = create_char_literal();
-    char_node->expression.node.token = NULL;
     char_node->value = parser->cur_tok->literal[0];
     return (expression_node_t *) char_node;
 }
@@ -397,7 +386,7 @@ regex_t *
 parse_regex(parser_t *parser)
 {
     regex_t * regex = regex_init();
-    node_t *node = (node_t *) parse_expression(parser, LOWEST, END_OF_FILE);
+    expression_node_t *node = parse_expression(parser, LOWEST, END_OF_FILE);
     regex->root = node;
     return regex;
 }
@@ -510,7 +499,7 @@ expression_to_string(expression_node_t *node)
 }
 
 static char *
-to_string(node_t *node)
+to_string(expression_node_t *node)
 {
     return expression_to_string((expression_node_t *) node);
 }

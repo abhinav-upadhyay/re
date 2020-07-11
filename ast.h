@@ -83,15 +83,9 @@ static const char *operator_strings[] = {
 #define MATCH_ALL 254
 
 
-typedef struct node_t {
-    char * (*string) (struct node_t *);
-    token_t *token;
-    node_type_t type;
-} node_t;
-
 typedef struct expression_node_t {
     expression_type_t type;
-    node_t node;
+    char * (*string) (struct expression_node_t *);
 } expression_node_t;
 
 typedef struct char_literal_t {
@@ -119,8 +113,8 @@ typedef struct postfix_expression_t {
 
 
 typedef struct regex_t {
-    node_t node;
-    node_t *root;
+    expression_node_t *node;
+    expression_node_t *root;
 } regex_t;
 
 #endif
