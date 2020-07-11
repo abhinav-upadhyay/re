@@ -58,7 +58,8 @@ find_match_state(nfa_state_t *s, u_int8_t c)
 
     if (is_null_state(s)) {
         find_match_state(s->out, c);
-        find_match_state(s->out1, c);
+        if (s->out1)
+            find_match_state(s->out1, c);
         return;
     }
 
