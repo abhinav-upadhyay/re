@@ -37,7 +37,20 @@
 #include "nfa_compiler.h"
 #include "re_utils.h"
 
-static nfa_state_t * compile_expression_node(nfa_machine_t *, expression_node_t *);
+
+static nfa_state_t *compile_infix_node(nfa_machine_t *, expression_node_t *);
+static nfa_state_t *compile_postfix_node(nfa_machine_t *, expression_node_t *);
+static nfa_state_t *compile_char_class(nfa_machine_t *, expression_node_t *);
+static nfa_state_t *compile_char_literal(nfa_machine_t *, expression_node_t *);
+
+static expression_compile_fn compile_fns[] = {
+    compile_char_literal, //CHAR_LITERAL
+    compile_char_class, // CHAR_CLASS
+    compile_infix_node, // INFIX_EXP
+    compile_postfix_node, // POSFIX_EXP
+    NULL
+};
+#define compile_expression_node(machine, node) (compile_fns[node->type](machine, node))
 
 const nfa_state_t ACCEPTING_STATE = {NULL, NULL, NULL, {0}, 0};
 
@@ -75,8 +88,9 @@ free_end_list(end_state_list *list)
 }
 
 static nfa_state_t *
-compile_infix_node(nfa_machine_t *machine, infix_expression_t *node)
+compile_infix_node(nfa_machine_t *machine, expression_node_t *n)
 {
+    infix_expression_t *node = (infix_expression_t *) n;
     if (node->op == OR) {
         // We can optimize the alternation of two char matches, such as `a|b` by
         // combining the matches into a single node. Usually alternation results
@@ -128,8 +142,9 @@ compile_infix_node(nfa_machine_t *machine, infix_expression_t *node)
 
 
 static nfa_state_t *
-compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
+compile_postfix_node(nfa_machine_t *machine, expression_node_t *n)
 {
+    postfix_expression_t *node = (postfix_expression_t *) n;
     nfa_state_t *state = create_state(machine, NULL_STATE);
     nfa_state_t *left = compile_expression_node(machine, node->left);
     state->out = left;
@@ -150,34 +165,26 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
     return state;
 }
 
-
 static nfa_state_t *
-compile_expression_node(nfa_machine_t *machine, expression_node_t *node)
+compile_char_literal(nfa_machine_t *machine, expression_node_t *node)
 {
-    nfa_state_t *state;
-    char_class_t *char_class;
-    switch (node->type) {
-    case INFIX_EXPRESSION:
-        return compile_infix_node(machine, (infix_expression_t *) node);
-    case POSTFIX_EXPRESSION:
-        return compile_postfix_node(machine, (postfix_expression_t *) node);
-    case CHAR_LITERAL:
-        state = create_state(machine, ((char_literal_t *) node)->value);
+        nfa_state_t *state = create_state(machine, ((char_literal_t *) node)->value);
         state->out = (nfa_state_t *) &ACCEPTING_STATE;
         if (state->c[NULL_STATE])
             state->out1 = (nfa_state_t *) &ACCEPTING_STATE;
         state->end_list->state = state;
         return state;
-    case CHAR_CLASS:
-        state = create_state(machine, NULL_STATE);
-        char_class = (char_class_t *) node;
-        memcpy(state->c, char_class->allowed_values, 256);
-        state->out = (nfa_state_t *) &ACCEPTING_STATE;
-        state->end_list->state = state;
-        return state;
-    default:
-        errx(EXIT_FAILURE, "Unsupported node type");
-    }
+}
+
+static nfa_state_t *
+compile_char_class(nfa_machine_t *machine, expression_node_t *node)
+{
+    nfa_state_t *state = create_state(machine, NULL_STATE);
+    char_class_t *char_class = (char_class_t *) node;
+    memcpy(state->c, char_class->allowed_values, 256);
+    state->out = (nfa_state_t *) &ACCEPTING_STATE;
+    state->end_list->state = state;
+    return state;
 }
 
 nfa_machine_t *
@@ -193,7 +200,8 @@ compile_regex(const char *regex_pattern)
     if (machine == NULL)
         err(EXIT_FAILURE, "malloc failed");
     machine->state_list = cm_array_list_init(64, NULL);
-    nfa_state_t *compiled_regex = compile_expression_node(machine, (expression_node_t *) regex->root);
+    expression_node_t *root = (expression_node_t *) regex->root;
+    nfa_state_t *compiled_regex =  compile_fns[root->type](machine, root);
     parser_free(parser);
     regex_free(regex);
     machine->start = compiled_regex;

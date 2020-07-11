@@ -69,6 +69,7 @@ extern const nfa_state_t ACCEPTING_STATE;
 #define is_matching_state(s, c) (s->c[MATCH_ALL]? 1: s->c[c])
 #define is_null_state(s) (s->c[NULL_STATE])
 
+typedef nfa_state_t * (*expression_compile_fn) (nfa_machine_t *, expression_node_t *);
 
 
 void free_nfa(nfa_machine_t *);
