@@ -36,6 +36,8 @@ token_t *
 token_copy(token_t *tok)
 {
     token_t *new_token;
+    if (tok == NULL)
+        return NULL;
     new_token = malloc(sizeof(*new_token));
     if (new_token == NULL)
         err(EXIT_FAILURE, "malloc failed");
@@ -53,8 +55,6 @@ token_copy(token_t *tok)
 void
 token_free(token_t *tok)
 {
-    if (tok == NULL)
-        return;
     if (tok->type == CHAR)
         free(tok->literal);
     free(tok);
