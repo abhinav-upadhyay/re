@@ -410,6 +410,35 @@ regex_free(regex_t *regex)
 }
 
 void
+free_expression2(expression_node_t *exp)
+{
+    cm_stack *stack = cm_stack_init(64);
+    cm_stack_push(stack, exp);
+    while (stack->length > 0) {
+        expression_node_t *e = (expression_node_t *) cm_stack_pop(stack);
+        if (e->type == CHAR_LITERAL || e->type == CHAR_LITERAL) {
+            free(e);
+            continue;
+        }
+        if (e->type == INFIX_EXPRESSION) {
+            infix_expression_t *infix = (infix_expression_t *) e;
+            cm_stack_push(stack, infix->left);
+            cm_stack_push(stack, infix->right);
+            free(e);
+            continue;
+        }
+        if (e->type == POSTFIX_EXPRESSION) {
+            postfix_expression_t *postfix = (postfix_expression_t *) e;
+            cm_stack_push(stack, postfix->left);
+            free(e);
+            continue;
+        }
+        free(e);
+    }
+    cm_stack_free(stack);
+}
+
+void
 free_expression(expression_node_t *exp)
 {
     infix_expression_t *infix;

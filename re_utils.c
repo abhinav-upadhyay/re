@@ -78,8 +78,8 @@ cm_list_free(cm_list *list, void (*free_data) (void *))
     while (list_node != NULL) {
         if (free_data)
             free_data(list_node->data);
-        else
-            free(list_node->data);
+        // else
+            // free(list_node->data);
         temp_node = list_node->next;
         free(list_node);
         list_node = temp_node;
@@ -465,4 +465,30 @@ _Bool
 pointer_equals(void *key1, void*key2)
 {
     return key1 == key2;
+}
+
+void
+cm_stack_push(cm_stack *stack, void *v)
+{
+    cm_array_list *l = (cm_array_list *) stack;
+    cm_array_list_add(l, v);
+}
+
+void *
+cm_stack_pop(cm_stack *stack)
+{
+    stack->length--;
+    return stack->array[stack->length];
+}
+
+cm_stack *
+cm_stack_init(size_t init_size)
+{
+    return (cm_stack *) cm_array_list_init(init_size, NULL);
+}
+
+void
+cm_stack_free(cm_stack *stack)
+{
+    cm_array_list_free((cm_array_list *) stack);
 }

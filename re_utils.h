@@ -69,6 +69,8 @@ typedef struct cm_hash_table {
     void (*free_value) (void *);
 } cm_hash_table;
 
+typedef cm_array_list cm_stack;
+
 
 cm_list *cm_list_init(void);
 int cm_list_add(cm_list *, void *);
@@ -83,6 +85,10 @@ void *cm_array_list_last(cm_array_list *);
 void *cm_array_list_first(cm_array_list *);
 void cm_array_list_remove(cm_array_list *, size_t);
 void cm_array_list_free(cm_array_list *);
+void * cm_stack_pop(cm_stack *);
+void cm_stack_push(cm_stack *, void *);
+cm_stack *cm_stack_init(size_t);
+void cm_stack_free(cm_stack *);
 char *cm_array_string_list_join(cm_array_list *, const char *);
 cm_array_list *cm_array_list_copy(cm_array_list *, void * (*copy_func) (void *));
 
