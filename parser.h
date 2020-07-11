@@ -66,5 +66,6 @@ infix_expression_t *create_infix_exp(void);
 char_literal_t *create_char_literal(void);
 char_class_t *create_char_class(void);
 void free_expression(expression_node_t *);
+expression_node_t *copy_expression(expression_node_t *);
 
 #endif
