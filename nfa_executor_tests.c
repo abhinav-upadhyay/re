@@ -76,6 +76,7 @@ test_matches(void)
         {"a?a?a?aaa", "aaa", 1},
         {"a?a?a?aaa", "aaab", 1},
         {"a?a?a?aaa", "a", 0},
+        {"a?a?a?a?a?a?a?aaaaaaa", "aaaaaaa", 1},
         {"((ab|cd)+)12", "ab12", 1},
         {"((ab|cd)+)12", "cd12", 1},
         {"((ab|cd)+)12", "12", 0},
@@ -135,9 +136,9 @@ test_matches(void)
         printf("Testing regex %s with string %s---", t.regex, t.s);
         nfa_machine_t *machine = compile_regex(t.regex);
         int match = nfa_execute(machine, t.s);
+        free_nfa(machine);
         test(match == t.expected, ANSI_COLOR_RED "failed for input %s: %s\n" ANSI_COLOR_RESET, t.regex, t.s);
         printf(ANSI_COLOR_GREEN "-Passed!" ANSI_COLOR_RESET "\n");
-        free_nfa(machine);
     }
 }
 
