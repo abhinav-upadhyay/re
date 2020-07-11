@@ -39,7 +39,7 @@
 
 static nfa_state_t * compile_expression_node(nfa_machine_t *, expression_node_t *);
 
-const nfa_state_t ACCEPTING_STATE = {NULL, NULL, NULL, 0, {0}};
+const nfa_state_t ACCEPTING_STATE = {NULL, NULL, NULL, {0}, 0};
 
 static nfa_state_t *
 create_state(nfa_machine_t *machine, u_int8_t c)
@@ -62,7 +62,7 @@ create_state(nfa_machine_t *machine, u_int8_t c)
     return state;
 }
 
-static void
+void
 free_end_list(end_state_list *list)
 {
     end_state_list *node = list;
@@ -132,51 +132,22 @@ compile_postfix_node(nfa_machine_t *machine, postfix_expression_t *node)
 {
     nfa_state_t *state = create_state(machine, NULL_STATE);
     nfa_state_t *left = compile_expression_node(machine, node->left);
-    if (node->op == ZERO_OR_ONE) {
-        state->out = left;
-        state->out1 = (nfa_state_t *) &ACCEPTING_STATE;
-        state->end_list->state = state;
-        state->end_list->next = left->end_list;
-        state->end_list->tail = left->end_list->tail;
-        left->end_list = NULL; //TODO? check
-        return state;
-    } else if (node->op == ZERO_OR_MORE) {
-        state->out = left;
-        end_state_list *temp = left->end_list;
-        while (temp) {
-            if (is_end_state(temp->state->out)) {
-                temp->state->out = state;
-            }
-            if (temp->state->out1 && is_end_state(temp->state->out1)) {
-                temp->state->out1 = state;
-            }
-            temp = temp->next;
+    state->out = left;
+    end_state_list *temp = left->end_list;
+    while (temp) {
+        if (is_end_state(temp->state->out)) {
+            temp->state->out = state;
         }
-        free_end_list(left->end_list);
-        left->end_list = NULL;
-        state->end_list->state = state;
-        state->out1 = (nfa_state_t *) &ACCEPTING_STATE;
-        return state;
-    } else if (node->op == ONE_OR_MORE) {
-        end_state_list *temp = left->end_list;
-        while (temp) {
-            if (is_end_state(temp->state->out)) {
-                temp->state->out = state;
-            }
-            if (temp->state->out1 && is_end_state(temp->state->out1)) {
-                temp->state->out1 = state;
-            }
-            temp = temp->next;
+        if (temp->state->out1 && is_end_state(temp->state->out1)) {
+            temp->state->out1 = state;
         }
-        state->out = left;
-        state->out1 = (nfa_state_t *) &ACCEPTING_STATE;
-        free_end_list(left->end_list);
-        left->end_list = state->end_list;
-        left->end_list->state = state;
-        state->end_list = NULL;
-        return left;
+        temp = temp->next;
     }
-    return NULL; //should not reach here
+    free_end_list(left->end_list);
+    left->end_list = NULL;
+    state->end_list->state = state;
+    state->out1 = (nfa_state_t *) &ACCEPTING_STATE;
+    return state;
 }
 
 
@@ -193,6 +164,8 @@ compile_expression_node(nfa_machine_t *machine, expression_node_t *node)
     case CHAR_LITERAL:
         state = create_state(machine, ((char_literal_t *) node)->value);
         state->out = (nfa_state_t *) &ACCEPTING_STATE;
+        if (state->c[NULL_STATE])
+            state->out1 = (nfa_state_t *) &ACCEPTING_STATE;
         state->end_list->state = state;
         return state;
     case CHAR_CLASS:
@@ -219,7 +192,7 @@ compile_regex(const char *regex_pattern)
     machine = malloc(sizeof(*machine));
     if (machine == NULL)
         err(EXIT_FAILURE, "malloc failed");
-    machine->state_list = cm_array_list_init(128, NULL);
+    machine->state_list = cm_array_list_init(64, NULL);
     nfa_state_t *compiled_regex = compile_expression_node(machine, (expression_node_t *) regex->root);
     parser_free(parser);
     regex_free(regex);

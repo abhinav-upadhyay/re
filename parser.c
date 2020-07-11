@@ -141,7 +141,8 @@ regex_init(void)
 void
 parser_next_token(parser_t *parser)
 {
-    token_free(parser->cur_tok);
+    if (parser->cur_tok)
+        token_free(parser->cur_tok);
     parser->cur_tok = parser->peek_tok;
     parser->peek_tok = next_token(parser->lexer);
 }
@@ -218,14 +219,35 @@ create_postfix_exp(void)
     postfix_exp->expression.type = POSTFIX_EXPRESSION;
     postfix_exp->expression.node.type = EXPRESSION_NODE;
     postfix_exp->expression.node.string = to_string;
+    postfix_exp->expression.node.token = NULL;
     return postfix_exp;
 }
 
 static expression_node_t *
 parse_postfix_expression(parser_t *parser, expression_node_t *left)
 {
+    operator_t op = get_op(parser->cur_tok->type);
+    if (op == ZERO_OR_ONE) {
+        infix_expression_t *infix_exp = create_infix_exp();
+        infix_exp->op = OR;
+        char_literal_t *null_node = create_char_literal();
+        null_node->value = NULL_STATE;
+        null_node->expression.node.token = NULL;
+        infix_exp->left = (expression_node_t *) null_node;
+        infix_exp->right = left;
+        return (expression_node_t *) infix_exp;
+    }
+    if (op == ONE_OR_MORE) {
+        infix_expression_t *infix_exp = create_infix_exp();
+        infix_exp->op = CONCAT;
+        infix_exp->left = left;
+        postfix_expression_t *right = create_postfix_exp();
+        right->op = ZERO_OR_MORE;
+        right->left = copy_expression(left);
+        infix_exp->right = (expression_node_t *) right;
+        return (expression_node_t *) infix_exp;
+    }
     postfix_expression_t *postfix_exp = create_postfix_exp();
-    postfix_exp->expression.node.token = NULL;
     postfix_exp->left = left;
     postfix_exp->op = get_op(parser->cur_tok->type);
     return (expression_node_t *) postfix_exp;
@@ -241,6 +263,7 @@ create_infix_exp(void)
     infix_exp->expression.type = INFIX_EXPRESSION;
     infix_exp->expression.node.type = EXPRESSION_NODE;
     infix_exp->expression.node.string = to_string;
+    infix_exp->expression.node.token = NULL;
     return infix_exp;
 }
 
@@ -342,6 +365,7 @@ create_char_class(void)
     char_class->expression.type = CHAR_CLASS;
     char_class->expression.node.type = EXPRESSION_NODE;
     char_class->expression.node.string = to_string;
+    char_class->expression.node.token = NULL;
     return char_class;
 }
 
@@ -355,6 +379,7 @@ create_char_literal(void)
     char_node->expression.type = CHAR_LITERAL;
     char_node->expression.node.type = EXPRESSION_NODE;
     char_node->expression.node.string = to_string;
+    char_node->expression.node.token = NULL;
     return char_node;
 }
 
@@ -400,7 +425,6 @@ free_expression(expression_node_t *exp)
 {
     infix_expression_t *infix;
     postfix_expression_t *postfix;
-    token_free(exp->node.token);
     switch (exp->type) {
     case INFIX_EXPRESSION:
         infix = (infix_expression_t *) exp;
@@ -568,4 +592,56 @@ print_ast(regex_t *regex)
     expression_node_t *exp = (expression_node_t *) regex->root;
     size_t indent = 0;
     print_exp(exp, indent);
+}
+
+expression_node_t *
+copy_char_literal(char_literal_t *exp)
+{
+    char_literal_t *node = create_char_literal();
+    node->value = exp->value;
+    return (expression_node_t *) node;
+}
+
+expression_node_t *
+copy_char_class(char_class_t *exp)
+{
+    char_class_t *node = create_char_class();
+    memcpy(node->allowed_values, exp->allowed_values, 256);
+    return (expression_node_t *) node;
+}
+
+expression_node_t *
+copy_postfix_expression(postfix_expression_t *exp)
+{
+    postfix_expression_t *node = create_postfix_exp();
+    node->left = copy_expression(exp->left);
+    node->op = exp->op;
+    return (expression_node_t *) node;
+}
+
+expression_node_t *
+copy_infix_expression(infix_expression_t *exp)
+{
+    infix_expression_t *node = create_infix_exp();
+    node->left = copy_expression(exp->left);
+    node->right = copy_expression(exp->right);
+    node->op = exp->op;
+    return (expression_node_t *) node;
+}
+
+expression_node_t *
+copy_expression(expression_node_t *exp)
+{
+    switch (exp->type) {
+    case CHAR_LITERAL:
+        return copy_char_literal((char_literal_t *) exp);
+    case CHAR_CLASS:
+        return copy_char_class((char_class_t *) exp);
+    case POSTFIX_EXPRESSION:
+        return copy_postfix_expression((postfix_expression_t *) exp);
+    case INFIX_EXPRESSION:
+        return copy_infix_expression((infix_expression_t *) exp);
+    default:
+        errx(EXIT_FAILURE, "Unsupported expression type");
+    }
 }

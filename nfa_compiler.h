@@ -30,6 +30,7 @@
 #ifndef NFA_COMPILER_H
 #define NFA_COMPILER_H
 
+#include "ast.h"
 #include "re_utils.h"
 
 
@@ -46,8 +47,8 @@ typedef struct nfa_state_t {
     struct nfa_state_t *out;
     struct nfa_state_t *out1;
     struct end_state_list *end_list;
-    size_t state_idx;
     u_int8_t c[256];
+    size_t state_idx;
 } nfa_state_t;
 
 typedef struct end_state_list {
@@ -61,9 +62,6 @@ typedef struct nfa_machine_t {
     cm_array_list *state_list;
 } nfa_machine_t;
 
-#define END_STATE 0
-#define NULL_STATE 255
-#define MATCH_ALL 254
 
 extern const nfa_state_t ACCEPTING_STATE;
 
@@ -75,4 +73,5 @@ extern const nfa_state_t ACCEPTING_STATE;
 
 void free_nfa(nfa_machine_t *);
 nfa_machine_t *compile_regex(const char *);
+void free_end_list(end_state_list *);
 #endif
