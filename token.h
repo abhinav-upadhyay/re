@@ -61,8 +61,8 @@ static const char *token_names[] = {
 };
 
 typedef struct token_t {
-    token_type type;
     char *literal;
+    token_type type;
 } token_t;
 
 #define get_token_name(tok_type) token_names[tok_type]
