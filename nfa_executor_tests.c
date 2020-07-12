@@ -77,6 +77,7 @@ test_matches(void)
         {"a?a?a?aaa", "aaab", 1},
         {"a?a?a?aaa", "a", 0},
         {"a?a?a?a?a?a?a?aaaaaaa", "aaaaaaa", 1},
+        {"(ab|c)+", "ab", 1},
         {"((ab|cd)+)12", "ab12", 1},
         {"((ab|cd)+)12", "cd12", 1},
         {"((ab|cd)+)12", "12", 0},
