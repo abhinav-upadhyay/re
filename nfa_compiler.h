@@ -31,17 +31,6 @@
 #define NFA_COMPILER_H
 
 #include "ast.h"
-#include "re_utils.h"
-
-
-typedef enum state_type_t {
-    STATE_CHAR,
-    STATE_CONCAT,
-    STATE_OR,
-    STATE_ONE_OR_MORE,
-    STATE_ZERO_OR_MORE,
-    STATE_ZERO_OR_ONE
-} state_type_t;
 
 typedef struct nfa_state_t {
     struct nfa_state_t *out;
@@ -59,7 +48,6 @@ typedef struct end_state_list {
 
 typedef struct nfa_machine_t {
     nfa_state_t *start;
-    cm_array_list *state_list;
     size_t nstates;
 } nfa_machine_t;
 
