@@ -113,7 +113,6 @@ typedef struct postfix_expression_t {
 
 
 typedef struct regex_t {
-    expression_node_t *node;
     expression_node_t *root;
 } regex_t;
 
