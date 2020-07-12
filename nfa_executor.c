@@ -90,7 +90,7 @@ nfa_execute(nfa_machine_t *machine, const char *string)
 {
     clist = calloc(LIST_SIZE, sizeof(nfa_state_t *));
     nlist = calloc(LIST_SIZE, sizeof(nfa_state_t *));
-    size_t idx_len = machine->state_list->length + 1;
+    size_t idx_len = machine->nstates;
     idx_list = calloc(1, idx_len);
     CLIST_INDEX = 0;
     NLIST_INDEX = 0;

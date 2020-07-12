@@ -70,8 +70,7 @@ create_state(nfa_machine_t *machine, u_int8_t c)
         err(EXIT_FAILURE, "malloc failed");
     state->end_list->next = NULL;
     state->end_list->tail = state->end_list;
-    cm_array_list_add(machine->state_list, state);
-    state->state_idx = machine->state_list->length;
+    state->state_idx = machine->nstates++;
     return state;
 }
 
@@ -199,7 +198,7 @@ compile_regex(const char *regex_pattern)
     machine = malloc(sizeof(*machine));
     if (machine == NULL)
         err(EXIT_FAILURE, "malloc failed");
-    machine->state_list = cm_array_list_init(64, NULL);
+    machine->nstates = 0;
     expression_node_t *root = (expression_node_t *) regex->root;
     nfa_state_t *compiled_regex =  compile_fns[root->type](machine, root);
     parser_free(parser);
@@ -208,17 +207,35 @@ compile_regex(const char *regex_pattern)
     return machine;
 }
 
+static void
+free_state(nfa_state_t *state, nfa_state_t **seen_states)
+{
+    cm_stack *stack = cm_stack_init(256);
+    cm_stack_push(stack, state);
+    while (stack->length) {
+        nfa_state_t *top = cm_stack_pop(stack);
+        if (top == &ACCEPTING_STATE || seen_states[top->state_idx])
+            continue;
+        seen_states[top->state_idx] = top;
+        cm_stack_push(stack, top->out);
+        if (top->out1)
+            cm_stack_push(stack, top->out1);
+    }
+    cm_stack_free(stack);
+}
+
 
 void
 free_nfa(nfa_machine_t *machine)
 {
-    for (size_t i = 0; i < machine->state_list->length; i++) {
-        nfa_state_t *s = machine->state_list->array[i];
-        if (s->end_list)
-            free_end_list(s->end_list);
-        free(s);
-    }
-    free(machine->state_list->array);
-    free(machine->state_list);
+    nfa_state_t **states = calloc(1, sizeof(size_t *) * machine->nstates);
+    nfa_state_t *start = machine->start;
+    free_state(start, states);
+    for (size_t i = 0; i < machine->nstates; i++)
+        if (states[i]) {
+            free_end_list(states[i]->end_list);
+            free(states[i]);
+        }
+    free(states);
     free(machine);
 }

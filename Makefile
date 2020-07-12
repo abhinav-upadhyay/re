@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS+=-g -D_GNU_SOURCE -march=native -std=c11
+CFLAGS+=-Ofast -D_GNU_SOURCE -march=native -std=c11
 all: lexer_tests parser_tests nfa_executor_tests benchmark
 
 lexer_tests: lexer_tests.o token.o lexer.o

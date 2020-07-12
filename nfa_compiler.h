@@ -47,7 +47,7 @@ typedef struct nfa_state_t {
     struct nfa_state_t *out;
     struct nfa_state_t *out1;
     struct end_state_list *end_list;
-    u_int8_t c[256];
+    uint8_t c[256];
     size_t state_idx;
 } nfa_state_t;
 
@@ -60,6 +60,7 @@ typedef struct end_state_list {
 typedef struct nfa_machine_t {
     nfa_state_t *start;
     cm_array_list *state_list;
+    size_t nstates;
 } nfa_machine_t;
 
 
