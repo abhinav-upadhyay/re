@@ -46,6 +46,14 @@ static expression_node_t * parse_re_group(parser_t *);
 static expression_node_t * parse_char_class(parser_t *);
 static void print_exp(expression_node_t *, size_t);
 
+/** Stack used during freeing up the AST nodes
+ * setting stack size to 64 - it is reasonably big to collect all the nodes
+ * of the AST. Tested with expression a?^na^n for n=40000. An expression bigger
+ * than this can cause the program to crash before leaking memory. 
+*/
+static expression_node_t *stack[32];
+
+
 static prefix_parse_fn prefix_fns[] = {
     parse_char_node, // char
     NULL, // plus
@@ -412,10 +420,6 @@ regex_free(regex_t *regex)
 void
 free_expression(expression_node_t *exp)
 {
-    // setting stack size to 64 - it is reasonably big to collect all the nodes
-    // of the AST. Tested with expression a?^na^n for n=40000. An expression bigger
-    // than this can cause the program to crash before leaking memory. 
-    expression_node_t *stack[64];
     size_t top = 0;
     stack[top++] = exp;
     while (top > 0) {

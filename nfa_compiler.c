@@ -35,13 +35,18 @@
 #include "parser.h"
 #include "lexer.h"
 #include "nfa_compiler.h"
-#include "re_utils.h"
 
 
 static nfa_state_t *compile_infix_node(nfa_machine_t *, expression_node_t *);
 static nfa_state_t *compile_postfix_node(nfa_machine_t *, expression_node_t *);
 static nfa_state_t *compile_char_class(nfa_machine_t *, expression_node_t *);
 static nfa_state_t *compile_char_literal(nfa_machine_t *, expression_node_t *);
+
+// 32 stack size is enough to clean up machine with states upto 75k
+// beyond that the application crashes on a 16 GB machine. We can always
+// increase this limit or make it dynamic if required
+static nfa_state_t *stack[32];  
+
 
 static expression_compile_fn compile_fns[] = {
     compile_char_literal, //CHAR_LITERAL
@@ -208,20 +213,19 @@ compile_regex(const char *regex_pattern)
 }
 
 static void
-free_state(nfa_state_t *state, nfa_state_t **seen_states)
+free_state(nfa_state_t *state, nfa_state_t **seen_states, size_t nsates)
 {
-    cm_stack *stack = cm_stack_init(256);
-    cm_stack_push(stack, state);
-    while (stack->length) {
-        nfa_state_t *top = cm_stack_pop(stack);
-        if (top == &ACCEPTING_STATE || seen_states[top->state_idx])
+    size_t top = 0;
+    stack[top++] = state;
+    while (top) {
+        nfa_state_t *s = stack[--top];
+        if (s == &ACCEPTING_STATE || seen_states[s->state_idx])
             continue;
-        seen_states[top->state_idx] = top;
-        cm_stack_push(stack, top->out);
-        if (top->out1)
-            cm_stack_push(stack, top->out1);
+        seen_states[s->state_idx] = s;
+        stack[top++] = s->out;
+        if (s->out1)
+            stack[top++] = s->out1;
     }
-    cm_stack_free(stack);
 }
 
 
@@ -230,12 +234,11 @@ free_nfa(nfa_machine_t *machine)
 {
     nfa_state_t **states = calloc(1, sizeof(size_t *) * machine->nstates);
     nfa_state_t *start = machine->start;
-    free_state(start, states);
-    for (size_t i = 0; i < machine->nstates; i++)
-        if (states[i]) {
-            free_end_list(states[i]->end_list);
-            free(states[i]);
-        }
+    free_state(start, states, machine->nstates);
+    for (size_t i = 0; i < machine->nstates; i++) {
+        free_end_list(states[i]->end_list);
+        free(states[i]);
+    }
     free(states);
     free(machine);
 }
