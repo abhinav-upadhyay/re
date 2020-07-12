@@ -46,73 +46,73 @@ main(int argc, char **argv)
         {
             "(ab)*(c|d)",
             {
-                {LPAREN, "("},
-                {CHAR, "a"},
-                {CHAR, "b"},
-                {RPAREN, ")"},
-                {STAR, "*"},
-                {LPAREN, "("},
-                {CHAR, "c"},
-                {PIPE, "|"},
-                {CHAR, "d"},
-                {RPAREN, ")"},
-                {END_OF_FILE, ""}
+                {"(", LPAREN},
+                {"a", CHAR},
+                {"b", CHAR},
+                {")", RPAREN},
+                {"*", STAR},
+                {"(", LPAREN},
+                {"c", CHAR},
+                {"|", PIPE},
+                {"d", CHAR},
+                {")", RPAREN},
+                {"", END_OF_FILE}
             }
         },
         {
             "a|b",
             {
-                {CHAR, "a"},
-                {PIPE, "|"},
-                {CHAR, "b"},
-                {END_OF_FILE, ""}
+                {"a", CHAR},
+                {"|", PIPE},
+                {"b", CHAR},
+                {"", END_OF_FILE}
             }
         },
         {
             "(ab|c)*d",
             {
-                {LPAREN, "("},
-                {CHAR, "a"},
-                {CHAR, "b"},
-                {PIPE, "|"},
-                {CHAR, "c"},
-                {RPAREN, ")"},
-                {STAR, "*"},
-                {CHAR, "d"},
-                {END_OF_FILE, ""}
+                {"(", LPAREN},
+                {"a", CHAR},
+                {"b", CHAR},
+                {"|", PIPE},
+                {"c", CHAR},
+                {")", RPAREN},
+                {"*", STAR},
+                {"d", CHAR},
+                {"", END_OF_FILE}
             }
         },
         {
             "ab",
             {
-                {CHAR, "a"},
-                {CHAR, "b"},
-                {END_OF_FILE, ""}
+                {"a", CHAR},
+                {"b", CHAR},
+                {"", END_OF_FILE}
             }
         },
         {
             "[a-z]",
             {
-                {LBRACKET, "["},
-                {CHAR, "a"},
-                {CHAR, "-"},
-                {CHAR, "z"},
-                {RBRACKET, "]"},
-                {END_OF_FILE, ""}
+                {"[", LBRACKET},
+                {"a", CHAR},
+                {"-", CHAR},
+                {"z", CHAR},
+                {"]", RBRACKET},
+                {"", END_OF_FILE}
             }
         },
         {
             "a?[0-9]+",
             {
-                {CHAR, "a"},
-                {QUESTION, "?"},
-                {LBRACKET, "["},
-                {CHAR, "0"},
-                {CHAR, "-"},
-                {CHAR, "9"},
-                {RBRACKET, "]"},
-                {PLUS, "+"},
-                {END_OF_FILE, ""}
+                {"a", CHAR},
+                {"?", QUESTION},
+                {"[", LBRACKET},
+                {"0", CHAR},
+                {"-", CHAR},
+                {"9", CHAR},
+                {"]", RBRACKET},
+                {"+", PLUS},
+                {"", END_OF_FILE}
             }
         }
     };
