@@ -33,14 +33,6 @@
 #include <stdint.h>
 #include "token.h"
 
-typedef enum node_type_t {
-    EXPRESSION_NODE
-} node_type_t;
-
-static const char *node_type_strings[] = {
-    "EXPRESSION"
-};
-
 #define node_to_string(node_type) node_type_strings[node_type]
 
 typedef enum expression_type_t {

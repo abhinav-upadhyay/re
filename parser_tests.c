@@ -131,8 +131,7 @@ test_char_literal(void)
     lexer = lexer_init(input);
     parser = parser_init(lexer);
     regex = parse_regex(parser);
-    test(regex->root->type == EXPRESSION_NODE, "Expected an expression node, got %s\n", node_to_string(regex->root->type));
-    expression_node_t *root = (expression_node_t *) regex->root;
+    expression_node_t *root = regex->root;
     test(root->type == CHAR_LITERAL, "Expected a char literal, got %s\n", expression_type_to_string(root->type));
     char_literal_t *char_lit = (char_literal_t *) root;
     test(char_lit->value == 'a', "Expected value a, got %c\n", char_lit->value);
@@ -152,8 +151,7 @@ test_multichar_literal(void)
     lexer = lexer_init(input);
     parser = parser_init(lexer);
     regex = parse_regex(parser);
-    test(regex->root->type == EXPRESSION_NODE, "Expected an expression node, got %s\n", node_to_string(regex->root->type));
-    expression_node_t *root = (expression_node_t *) regex->root;
+    expression_node_t *root = regex->root;
     test(root->type == INFIX_EXPRESSION, "Expected an infix expression, got %s\n", expression_type_to_string(root->type));
     infix_expression_t *infix_exp = (infix_expression_t *) root;
     test(infix_exp->left->type == CHAR_LITERAL, "Expected char literal as left node of infix exp, got %s\n", expression_type_to_string(infix_exp->left->type));
@@ -179,8 +177,7 @@ test_simple_or(void)
     lexer = lexer_init(input);
     parser = parser_init(lexer);
     regex = parse_regex(parser);
-    test(regex->root->type == EXPRESSION_NODE, "Expected an expression node, got %s\n", node_to_string(regex->root->type));
-    expression_node_t *root = (expression_node_t *) regex->root;
+    expression_node_t *root = regex->root;
     test(root->type == INFIX_EXPRESSION, "Expected an infix expression, got %s\n", expression_type_to_string(root->type));
     infix_expression_t *infix_exp = (infix_expression_t *) root;
     test(infix_exp->left->type == CHAR_LITERAL, "Expected char literal as left node of infix exp, got %s\n", expression_type_to_string(infix_exp->left->type));
